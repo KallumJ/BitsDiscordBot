@@ -4,34 +4,33 @@ import commands.music.PauseMusic;
 import commands.music.PlayMusic;
 import commands.other.PingPong;
 import main.Bot;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Commands {
-    private static final ArrayList<Command> commands = new ArrayList<>();
+    private static final Map<String, Command> commands = new HashMap<>();
 
     public Commands() {
-        commands.add(new PlayMusic());
-        commands.add(new PauseMusic());
-        commands.add(new PingPong());
+        addCommand(new PlayMusic());
+        addCommand(new PauseMusic());
+        addCommand(new PingPong());
     }
 
-    public void evaluateCommand(String input) {
-        String[] words = input.split(" ");
-        ArrayList<String> phrases = new ArrayList<>();
+    private static void addCommand(@NotNull Command command) {
+        commands.put(command.getPhrase(), command);
+    }
 
-        for (Command command : commands) {
-            phrases.add(command.getPhrase());
-        }
+    public void evaluateCommand(String input, MessageReceivedEvent event) {
+        String[] words = input.split(" ");
 
         for (String word : words) {
-            if (phrases.contains(word)) {
+            if (commands.containsKey(word)) {
 
-                // Execute command of the found phrase
-                int index = phrases.indexOf(word);
-
-                Command command = commands.get(index);
-                command.execute();
+                Command command = commands.get(word);
+                command.execute(event);
             } else {
                 Bot.didNotUnderstand();
             }

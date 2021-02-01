@@ -22,7 +22,7 @@ public class MessageListener extends ListenerAdapter {
 
         // When message is intended for bob
         if (message.startsWith("!bob")) {
-            commands.evaluateCommand(message.replace("!bob ", ""));
+            commands.evaluateCommand(message.replace("!bob ", ""), event);
         }
 
     }
