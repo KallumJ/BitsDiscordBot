@@ -10,10 +10,12 @@ import javax.security.auth.login.LoginException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 public class Bot {
-    public static final File PROPERTIES_FILE = new File("src/main/resources/config.properties");
+    public static final String PROPERTIES_FILE_NAME = "config.properties";
+
     public Commands commands;
 
     public Bot() {
@@ -35,20 +37,26 @@ public class Bot {
     }
 
     // A method to initialise and start the bot
-    public JDA initBot() throws LoginException, IOException {
+    public JDA initBot() {
 
-        String token = readToken();
+        try {
+            String token = readToken();
 
-        return JDABuilder.createDefault(token)
-                .addEventListeners(new MessageListener())
-                .build();
+            return JDABuilder.createDefault(token)
+                    .addEventListeners(new MessageListener())
+                    .build();
+        } catch (IOException ex) {
+            throw new RuntimeException("Unable to read token file", ex);
+        } catch (LoginException ex) {
+            throw new RuntimeException("Error while logging in to Discord", ex);
+        }
     }
 
     public String readToken() throws IOException {
         Properties properties = new Properties();
 
-        FileInputStream fileInputStream = new FileInputStream(PROPERTIES_FILE);
-        properties.load(fileInputStream);
+        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(PROPERTIES_FILE_NAME);
+        properties.load(inputStream);
 
         return properties.getProperty("botToken");
     }

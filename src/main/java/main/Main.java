@@ -9,7 +9,7 @@ public class Main {
 
     public static Bot bot = new Bot();
 
-    public static void main(String[] args) throws IOException, LoginException {
+    public static void main(String[] args) {
         JDA jda = bot.initBot();
     }
 }
