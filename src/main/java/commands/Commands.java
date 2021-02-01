@@ -3,6 +3,7 @@ package commands;
 import commands.music.PauseMusic;
 import commands.music.PlayMusic;
 import commands.other.PingPong;
+import main.Bot;
 
 import java.util.ArrayList;
 
@@ -31,6 +32,8 @@ public class Commands {
 
                 Command command = commands.get(index);
                 command.execute();
+            } else {
+                Bot.didNotUnderstand();
             }
         }
 

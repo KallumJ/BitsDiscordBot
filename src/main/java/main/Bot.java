@@ -26,6 +26,10 @@ public class Bot {
         channel.sendMessage(message).queue();
     }
 
+    public static void didNotUnderstand() {
+        sendMessage("I'm sorry... I did not understand!");
+    }
+
     public Commands getCommands() {
         return commands;
     }
