@@ -5,28 +5,21 @@ import events.MessageListener;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.security.auth.login.LoginException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 public class Bot {
-    private static final File PROPERTIES_FILE = new File("src/main/resources/config.properties");
-    private final Commands commands;
-    private Logger logger;
+    public static final String PROPERTIES_FILE_NAME = "config.properties";
+
+    public Commands commands;
 
     public Bot() {
         this.commands = new Commands();
-        this.logger = LoggerFactory.getLogger(Bot.class);
-    }
-
-    public Logger getLogger() {
-        return logger;
     }
 
     public static void sendMessage(String message) {
@@ -35,10 +28,8 @@ public class Bot {
         channel.sendMessage(message).queue();
     }
 
-    public static void didNotUnderstand(MessageReceivedEvent event) {
-        MessageChannel channel = MessageListener.getLastMessageEvent().getChannel();
-
-        channel.sendMessage("I'm sorry... I did not understand!").queue();
+    public static void didNotUnderstand() {
+        sendMessage("I'm sorry... I did not understand!");
     }
 
     public Commands getCommands() {
@@ -46,21 +37,26 @@ public class Bot {
     }
 
     // A method to initialise and start the bot
-    public JDA initBot() throws LoginException, IOException {
+    public JDA initBot() {
 
+        try {
+            String token = readToken();
 
-        String token = readToken();
-
-        return JDABuilder.createDefault(token)
-                .addEventListeners(new MessageListener())
-                .build();
+            return JDABuilder.createDefault(token)
+                    .addEventListeners(new MessageListener())
+                    .build();
+        } catch (IOException ex) {
+            throw new RuntimeException("Unable to read token file", ex);
+        } catch (LoginException ex) {
+            throw new RuntimeException("Error while logging in to Discord", ex);
+        }
     }
 
     public String readToken() throws IOException {
         Properties properties = new Properties();
 
-        FileInputStream fileInputStream = new FileInputStream(PROPERTIES_FILE);
-        properties.load(fileInputStream);
+        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(PROPERTIES_FILE_NAME);
+        properties.load(inputStream);
 
         return properties.getProperty("botToken");
     }

@@ -7,9 +7,9 @@ import java.io.IOException;
 
 public class Main {
 
-    public static final Bot BOT = new Bot();
+    public static Bot bot = new Bot();
 
-    public static void main(String[] args) throws IOException, LoginException {
-        JDA jda = BOT.initBot();
+    public static void main(String[] args) {
+        JDA jda = bot.initBot();
     }
 }
