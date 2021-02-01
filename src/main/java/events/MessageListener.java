@@ -7,7 +7,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
 public class MessageListener extends ListenerAdapter {
-    public static MessageReceivedEvent lastMessageEvent;
+    private static MessageReceivedEvent lastMessageEvent;
 
     public static MessageReceivedEvent getLastMessageEvent() {
         return lastMessageEvent;
@@ -18,7 +18,7 @@ public class MessageListener extends ListenerAdapter {
         lastMessageEvent = event;
 
         String message = event.getMessage().getContentRaw().toLowerCase();
-        Commands commands = Main.bot.getCommands();
+        Commands commands = Main.BOT.getCommands();
 
         // When message is intended for bob
         if (message.startsWith("!bob")) {

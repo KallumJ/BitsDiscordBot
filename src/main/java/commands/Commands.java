@@ -32,7 +32,7 @@ public class Commands {
                 Command command = commands.get(word);
                 command.execute(event);
             } else {
-                Bot.didNotUnderstand();
+                Bot.didNotUnderstand(event);
             }
         }
 
