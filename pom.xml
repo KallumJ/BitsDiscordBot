@@ -64,6 +64,14 @@
             <artifactId>slf4j-simple</artifactId>
             <version>1.7.5</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.google.code</groupId>
+            <artifactId>project-ab</artifactId>
+            <version>0.0.4.3</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/libs/Ab.jar</systemPath>
+        </dependency>
     </dependencies>
 
 </project>
