@@ -9,7 +9,7 @@ public class PingPong extends Command {
     }
 
     @Override
-    public void execute(MessageReceivedEvent event) {
+    public void execute(String input, MessageReceivedEvent event) {
         event.getChannel().sendMessage("Pong!").queue();
     }
 }

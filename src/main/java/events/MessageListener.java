@@ -13,12 +13,13 @@ public class MessageListener extends ListenerAdapter {
 
     /**
      * A method to be executed everytime a MessageRecievedEvent is called
+     *
      * @param event The event that was called
      */
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
         String message = event.getMessage().getContentRaw().toLowerCase();
-        Commands commands = Main.BOT.getCommands();
+        Commands commands = Main.getBOT().getCommands();
 
         // When message is intended for bob, check it
         if (message.startsWith("!bob")) {

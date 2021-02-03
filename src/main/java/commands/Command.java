@@ -10,6 +10,7 @@ public abstract class Command {
 
     /**
      * Constructs a Command object
+     *
      * @param phrase The phrase required to execute this command
      */
     public Command(String phrase) {
@@ -18,6 +19,7 @@ public abstract class Command {
 
     /**
      * A method to return the phrase required to execute this command
+     *
      * @return String, the phrase
      */
     public String getPhrase() {
@@ -26,7 +28,8 @@ public abstract class Command {
 
     /**
      * A method to be implemented by the developer to implement the command's behaviour
+     * @param input The input that executed this command
      * @param event The event that executed this command
      */
-    public abstract void execute(MessageReceivedEvent event);
+    public abstract void execute(String input, MessageReceivedEvent event);
 }
