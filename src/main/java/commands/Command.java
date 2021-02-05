@@ -28,6 +28,7 @@ public abstract class Command {
 
     /**
      * A method to be implemented by the developer to implement the command's behaviour
+     *
      * @param input The input that executed this command
      * @param event The event that executed this command
      */

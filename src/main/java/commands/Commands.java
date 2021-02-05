@@ -1,7 +1,7 @@
 package commands;
 
 import commands.bitsplus.WikiLookup;
-import commands.other.PingPong;
+import commands.other.GamesRoleMessage;
 import main.Main;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
@@ -19,8 +19,8 @@ public class Commands {
      * Constructs a Commands object. Use addCommand() to add every Command that is available to the bot
      */
     public Commands() {
-        addCommand(new PingPong());
         addCommand(new WikiLookup());
+        addCommand(new GamesRoleMessage());
     }
 
     /**

@@ -15,7 +15,8 @@ public class WikiPage {
 
     /**
      * Constructs a WikiPage object
-     * @param id The id of the page, e.g technology:machines:controller
+     *
+     * @param id     The id of the page, e.g technology:machines:controller
      * @param client The DokuJClient object used to interact with the wiki
      */
     public WikiPage(String id, DokuJClient client) {
@@ -25,6 +26,7 @@ public class WikiPage {
 
     /**
      * A method to generate and return the title of the wiki page
+     *
      * @return String, The title of the page
      */
     public String findTitle() {
@@ -42,6 +44,7 @@ public class WikiPage {
 
     /**
      * A method to format a given id, e.g lava_generator -> Lava Generator
+     *
      * @param id The id to format
      * @return String, the formatted version of the id
      */
@@ -58,8 +61,7 @@ public class WikiPage {
         StringBuilder stringBuilder = new StringBuilder();
 
         for (String word : wordsArray) {
-            stringBuilder.append(word);
-            stringBuilder.append(" ");
+            stringBuilder.append(word).append(" ");
         }
 
         return stringBuilder.toString();
@@ -67,6 +69,7 @@ public class WikiPage {
 
     /**
      * A method to generate and return the URL for the page
+     *
      * @return String, the URL
      */
     public String findUrl() {
@@ -75,6 +78,7 @@ public class WikiPage {
 
     /**
      * A method to find a description for the page by searching for the first sentence in the HTML of the page
+     *
      * @return String, the generated description
      */
     public String findDescription() {
@@ -92,6 +96,7 @@ public class WikiPage {
 
     /**
      * A method to find the HTML for the wiki page
+     *
      * @return String, the HTML
      */
     public String findPageHtml() {

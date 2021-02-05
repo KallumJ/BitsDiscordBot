@@ -93,6 +93,12 @@
             <scope>system</scope>
             <systemPath>${basedir}/libs/jsoup-1.13.1.jar</systemPath>
         </dependency>
+
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20201115</version>
+        </dependency>
     </dependencies>
 
 </project>

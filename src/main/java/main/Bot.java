@@ -2,6 +2,7 @@ package main;
 
 import commands.Commands;
 import events.MessageListener;
+import events.ReactionListener;
 import main.ChatBot.ChatBot;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -58,6 +59,7 @@ public class Bot {
 
             return JDABuilder.createDefault(token)
                     .addEventListeners(new MessageListener())
+                    .addEventListeners(new ReactionListener())
                     .build();
         } catch (LoginException ex) {
             throw new RuntimeException("Error while logging in to Discord", ex);

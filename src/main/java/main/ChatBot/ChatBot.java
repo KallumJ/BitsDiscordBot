@@ -4,7 +4,6 @@ import org.alicebot.ab.Bot;
 import org.alicebot.ab.Chat;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 
 /**
  * A class to implement a project-ab chat bot
@@ -18,11 +17,7 @@ public class ChatBot {
      */
     public ChatBot() {
         File learnedFile = new File("bots/Bob/aimlif/learnf.aiml.csv");
-        boolean deleteSuccessful = learnedFile.delete();
-
-        if (!deleteSuccessful) {
-            throw new RuntimeException("learnf.aiml.csv failed to delete properly");
-        }
+        learnedFile.delete();
 
         File resourcesDirectory = new File(".");
         Bot chatBot = new Bot("Bob", resourcesDirectory.getPath());
