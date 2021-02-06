@@ -3,6 +3,7 @@ package util.json;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.events.message.react.GenericMessageReactionEvent;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -126,7 +127,7 @@ public class GamesJSON {
         HashMap<String, String> hashMap = new HashMap<>();
 
         try {
-            JSONArray gamesJSONArray = gamesJson.getJSONArray("games");
+            JSONArray gamesJSONArray = getGamesJsonArray();
             for (int i = 0; i < gamesJSONArray.length(); i++) {
                 JSONObject currentJSONObject = gamesJSONArray.getJSONObject(i);
                 String currentGame = currentJSONObject.getString("name");
@@ -145,7 +146,7 @@ public class GamesJSON {
 
             return hashMap;
         } catch (JSONException ex) {
-            throw new RuntimeException("Failed to load the games array from games.json");
+            throw new RuntimeException("Failed to load element from games.json");
         }
 
     }
@@ -169,6 +170,53 @@ public class GamesJSON {
 
         } catch (JSONException | IOException ex) {
             throw new RuntimeException("Unable to read message id from gamesJson");
+        }
+    }
+
+    /**
+     * A method to check whether the emote associated with the provided event is associated with a role
+     * @param event The reaction event
+     * @return boolean, true if emote has associated role, false otherwise;
+     */
+    public boolean checkEmoteHasRole(GenericMessageReactionEvent event) {
+
+        // If sentReaction is not custom, return false
+        String sentReaction;
+        try {
+            sentReaction = event.getReaction().getReactionEmote().getEmote().getName();
+        } catch (IllegalStateException ex) {
+            return false;
+        }
+
+        JSONArray gamesJsonArray = getGamesJsonArray();
+
+        try {
+            for (int i = 0; i < gamesJsonArray.length(); i++) {
+                JSONObject currentGame = gamesJsonArray.getJSONObject(i);
+                String currentGameReaction = currentGame.getString("reaction");
+
+
+                // If associated role found
+                if (currentGameReaction.equals(sentReaction)) {
+                    return true;
+                }
+            }
+        } catch (JSONException ex) {
+            throw new RuntimeException("Failed to find element in games json file");
+        }
+
+        return false;
+    }
+
+    /**
+     * A method to return the games array in the games json file
+     * @return JSONArray, the found JSONArray
+     */
+    private JSONArray getGamesJsonArray() {
+        try {
+            return gamesJson.getJSONArray("games");
+        } catch (JSONException ex) {
+            throw new RuntimeException("Failed to load the games array from games.json");
         }
     }
 }

@@ -12,7 +12,7 @@ import java.util.Properties;
 public class Main {
 
     private static final String PROPERTIES_FILE_NAME = "config.properties";
-    private static final Properties properties = new Properties();
+    private static final Properties PROPERTIES = new Properties();
     private static Bot BOT;
 
     /**
@@ -32,7 +32,7 @@ public class Main {
      */
     private static void initProperties() {
         try (InputStream input = Main.class.getClassLoader().getResourceAsStream(PROPERTIES_FILE_NAME)) {
-            properties.load(input);
+            PROPERTIES.load(input);
         } catch (IOException ex) {
             throw new RuntimeException("Unable to load the properties file", ex);
         }
@@ -53,7 +53,7 @@ public class Main {
      * @return Properties, the Properties object
      */
     public static Properties getProperties() {
-        return properties;
+        return PROPERTIES;
     }
 
 }

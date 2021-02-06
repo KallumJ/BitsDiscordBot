@@ -1,11 +1,14 @@
 package events;
 
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.events.message.react.GenericMessageReactionEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import util.json.GamesJSON;
+
+import java.util.Objects;
 
 /**
  * A class to listen to reaction related events
@@ -22,17 +25,19 @@ public class ReactionListener extends ListenerAdapter {
         String messageId = event.getMessageId();
 
         GamesJSON gamesJSON = new GamesJSON(event.getGuild());
+
+        // If the reaction was on the the role set embed
         if (gamesJSON.doesGameJSONIdMatch(messageId)) {
-            try {
-                String role = event.getReaction().getReactionEmote().getEmote().getName();
+            String role;
+
+            if (gamesJSON.checkEmoteHasRole(event)) {
+                role = event.getReaction().getReactionEmote().getEmote().getName();
                 Member member = event.getMember();
 
                 gamesJSON.addRole(member, role);
-            } catch (IllegalStateException ex) {
-                // If user reacted with a non custom emote, do nothing
-                return;
+            } else {
+                event.getReaction().removeReaction(Objects.requireNonNull(event.getUser())).queue();
             }
-
         }
     }
 
@@ -44,19 +49,22 @@ public class ReactionListener extends ListenerAdapter {
     @Override
     public void onMessageReactionRemove(@NotNull MessageReactionRemoveEvent event) {
         String messageId = event.getMessageId();
-        String member = event.getUserId();
 
         GamesJSON gamesJSON = new GamesJSON(event.getGuild());
+
+        // If the reaction was on the the role set embed
         if (gamesJSON.doesGameJSONIdMatch(messageId)) {
-            try {
-                String role = event.getReaction().getReactionEmote().getEmote().getName();
+            String role;
+
+            if (gamesJSON.checkEmoteHasRole(event)) {
+                role = event.getReaction().getReactionEmote().getEmote().getName();
+
+                String member = event.getUserId();
 
                 gamesJSON.removeRole(member, role);
-            } catch (IllegalStateException ex) {
-                // If user removed a non custom emote, do nothing
-                return;
             }
-
         }
+
     }
+
 }

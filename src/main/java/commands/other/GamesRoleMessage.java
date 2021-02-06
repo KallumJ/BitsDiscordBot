@@ -1,12 +1,16 @@
 package commands.other;
 
 import commands.Command;
+import main.Main;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import util.json.GamesJSON;
 
 import java.awt.*;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * A command to update the games role message currently on the server
@@ -30,15 +34,35 @@ public class GamesRoleMessage extends Command {
      */
     @Override
     public void execute(String input, MessageReceivedEvent event) {
-        this.gamesJSON = new GamesJSON(event.getGuild());
+        List<Role> executorRoles = Objects.requireNonNull(event.getMember()).getRoles();
 
-        removeOldRoleSetEmbed(event);
+        for (Role role : executorRoles) {
+            if (role.getId().equals(Main.getProperties().getProperty("guardRoleId"))) {
 
-        event.getChannel().sendMessage(generateNewRoleSetEmbed(event).build()).queue(message -> {
-            // Update the message id stored in games file
-            String messageId = message.getId();
-            gamesJSON.updateMessageID(messageId);
-        });
+                this.gamesJSON = new GamesJSON(event.getGuild());
+
+                // If user wants a new role set embed message
+                if (input.contains("new")) {
+                    removeOldRoleSetEmbed(event);
+
+                    event.getChannel().sendMessage(generateNewRoleSetEmbed(event).build()).queue(message -> {
+                        // Update the message id stored in games file
+                        String messageId = message.getId();
+                        gamesJSON.updateMessageID(messageId);
+                    });
+                } else {
+                    // Else, edit the one thats already there
+                    event.getChannel().retrieveMessageById(gamesJSON.findMessageID()).queue(message -> {
+                        message.editMessage(generateNewRoleSetEmbed(event).build()).queue();
+                    });
+                }
+
+                event.getMessage().delete().queue();
+
+                break;
+            }
+        }
+
     }
 
     /**
