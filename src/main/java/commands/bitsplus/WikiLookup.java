@@ -81,7 +81,6 @@ public class WikiLookup extends Command {
 
             // Find result with the top score
             for (SearchResult result : results) {
-
                 if (result.score() > topResultScore) {
                     topResultScore = result.score();
                     topResult = result;

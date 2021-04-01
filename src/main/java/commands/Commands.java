@@ -2,6 +2,8 @@ package commands;
 
 import commands.bitsplus.WikiLookup;
 import commands.other.GamesRoleMessage;
+import commands.voice.JoinVoice;
+import commands.voice.LeaveVoice;
 import main.Main;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
@@ -21,6 +23,8 @@ public class Commands {
     public Commands() {
         addCommand(new WikiLookup());
         addCommand(new GamesRoleMessage());
+        addCommand(new JoinVoice());
+        addCommand(new LeaveVoice());
     }
 
     /**

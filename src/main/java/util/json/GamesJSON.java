@@ -12,13 +12,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Objects;
 
 /**
  * A class to model the games json file used by the bot
  */
 public class GamesJSON {
-    private static final String GAMES_FILE_NAME = "games.json";
+    private static final String GAMES_FILE_PATH = "./games.json";
     private final JSONObject gamesJson;
     private final Guild guild;
 
@@ -44,8 +43,7 @@ public class GamesJSON {
      * @return String, The String of JSON data from file
      */
     private String parseGamesFileToString() {
-        return JSON.findJsonStringFromFile(new File(Objects.requireNonNull(this.getClass().getClassLoader()
-                .getResource(GAMES_FILE_NAME)).getFile()));
+        return JSON.findJsonStringFromFile(new File(GAMES_FILE_PATH));
     }
 
     /**
@@ -162,8 +160,7 @@ public class GamesJSON {
 
 
             // Rewrite JSON object to file
-            FileWriter fileWriter = new FileWriter(new File(Objects.requireNonNull(this.getClass().getClassLoader()
-                    .getResource(GAMES_FILE_NAME)).getFile()));
+            FileWriter fileWriter = new FileWriter(GAMES_FILE_PATH);
             fileWriter.write(this.gamesJson.toString());
             fileWriter.flush();
             fileWriter.close();
@@ -175,6 +172,7 @@ public class GamesJSON {
 
     /**
      * A method to check whether the emote associated with the provided event is associated with a role
+     *
      * @param event The reaction event
      * @return boolean, true if emote has associated role, false otherwise;
      */
@@ -210,6 +208,7 @@ public class GamesJSON {
 
     /**
      * A method to return the games array in the games json file
+     *
      * @return JSONArray, the found JSONArray
      */
     private JSONArray getGamesJsonArray() {

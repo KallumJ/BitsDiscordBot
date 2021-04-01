@@ -12,12 +12,16 @@ public class ChatBot {
     private static final String NO_UNDERSTAND_MSG = "Oops... I don't understand... I'm sorry! #BlameKall";
     private final Chat chatSession;
 
+    //TODO: handle <oob>s
+
     /**
      * Constructs a ChatBot object, loading the found .aiml files from the /bots directory, and deleting it's previous learnings
      */
     public ChatBot() {
         File learnedFile = new File("bots/Bob/aimlif/learnf.aiml.csv");
-        learnedFile.delete();
+        if (learnedFile.exists()) {
+            learnedFile.delete();
+        }
 
         File resourcesDirectory = new File(".");
         Bot chatBot = new Bot("Bob", resourcesDirectory.getPath());

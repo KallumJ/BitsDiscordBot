@@ -82,13 +82,33 @@
             <name>bintray</name>
             <url>https://jcenter.bintray.com</url>
         </repository>
+        <repository>
+            <id>dv8tion</id>
+            <name>m2-dv8tion</name>
+            <url>https://m2.dv8tion.net/releases</url>
+        </repository>
+        <repository>
+            <id>vosk</id>
+            <name>m2-vosk</name>
+            <url>https://alphacephei.com/maven/</url>
+        </repository>
+        <repository>
+            <id>snapshots-repo</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
     </repositories>
 
     <dependencies>
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
-            <version>4.2.0_214</version>
+            <version>4.2.0_168</version>
         </dependency>
 
         <dependency>
@@ -98,11 +118,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.google.code</groupId>
-            <artifactId>project-ab</artifactId>
-            <version>0.0.4.3</version>
-            <scope>system</scope>
-            <systemPath>${basedir}/libs/Ab.jar</systemPath>
+            <groupId>code.google</groupId>
+            <artifactId>project.ab</artifactId>
+            <version>1.0</version>
         </dependency>
 
         <dependency>
@@ -122,14 +140,36 @@
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
             <version>1.13.1</version>
-            <scope>system</scope>
-            <systemPath>${basedir}/libs/jsoup-1.13.1.jar</systemPath>
         </dependency>
 
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
             <version>20201115</version>
+        </dependency>
+
+        <dependency>
+            <groupId>edu.cmu.sphinx</groupId>
+            <artifactId>sphinx4-core</artifactId>
+            <version>5prealpha-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>edu.cmu.sphinx</groupId>
+            <artifactId>sphinx4-data</artifactId>
+            <version>5prealpha-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alphacephei</groupId>
+            <artifactId>vosk</artifactId>
+            <version>0.3.21</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>5.7.0</version>
         </dependency>
     </dependencies>
 
