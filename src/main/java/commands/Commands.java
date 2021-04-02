@@ -2,8 +2,8 @@ package commands;
 
 import commands.bitsplus.WikiLookup;
 import commands.other.GamesRoleMessage;
-import commands.voice.JoinVoice;
-import commands.voice.LeaveVoice;
+import commands.audio.voice.JoinVoice;
+import commands.audio.voice.LeaveVoice;
 import main.Main;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
@@ -44,6 +44,7 @@ public class Commands {
      * @param event The relevant event
      */
     public Optional<String> evaluateCommand(String input, MessageReceivedEvent event) {
+        //TODO: Allow multiple command phrases
         boolean understood = false;
         String[] words = input.split(" ");
 
@@ -61,8 +62,8 @@ public class Commands {
         // If no command is found, assume the user is chatting
         Optional<String> optResponse = Optional.empty();
         if (!understood) {
-             optResponse = Optional.ofNullable(Main.getBOT().getChatBot().askBot(input));
-             optResponse.ifPresent(response -> event.getChannel().sendMessage(response).queue());
+            optResponse = Optional.ofNullable(Main.getBOT().getChatBot().askBot(input));
+            optResponse.ifPresent(response -> event.getChannel().sendMessage(response).queue());
         }
         return optResponse;
     }

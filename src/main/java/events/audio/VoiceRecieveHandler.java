@@ -1,9 +1,9 @@
-package events;
+package events.audio;
 
 import net.dv8tion.jda.api.audio.AudioReceiveHandler;
 import net.dv8tion.jda.api.audio.UserAudio;
 import org.jetbrains.annotations.NotNull;
-import voice.VoiceProcessing;
+import audio.voice.VoiceProcessing;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,22 +11,21 @@ import java.util.concurrent.TimeUnit;
 
 public class VoiceRecieveHandler implements AudioReceiveHandler {
     private static final double VOLUME = 1.0;
+    // How often to check whether the user has stopped talking in ms
+    private final static int DETECTION_INTERVAL = 100;
+    private final static int MAXIMUM_TALK_TIME = 5000;
     private final List<byte[]> recievedBytes = new ArrayList<>();
     private boolean receiving = false;
     private boolean processing = false;
-
     // How long to wait to see if the user has stopped talking in ms
     private int detectionBuffer = 1000;
-
-    // How often to check whether the user has stopped talking in ms
-    private final static int DETECTION_INTERVAL = 100;
     private Thread timer;
-
     // In milliseconds
     private int howLongTalking;
-    private final static int MAXIMUM_TALK_TIME = 5000;
+
     /**
      * Returns the received bytes of the current utterance
+     *
      * @return List of byte arrays
      */
     public List<byte[]> getRecievedBytes() {
@@ -43,6 +42,7 @@ public class VoiceRecieveHandler implements AudioReceiveHandler {
 
     /**
      * Returns whether we can handle user audio
+     *
      * @return True, we can handle user audio
      */
     @Override
@@ -52,6 +52,7 @@ public class VoiceRecieveHandler implements AudioReceiveHandler {
 
     /**
      * Saves the users audio, and starts the talking detection
+     *
      * @param userAudio The users audio information
      */
     @Override

@@ -1,8 +1,8 @@
-package commands.voice;
+package commands.audio.voice;
 
 import commands.Command;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import voice.VoiceProcessing;
+import audio.voice.VoiceProcessing;
 
 public class JoinVoice extends Command {
 

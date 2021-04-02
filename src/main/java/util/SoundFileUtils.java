@@ -1,4 +1,4 @@
-package voice;
+package util;
 
 import net.dv8tion.jda.api.audio.AudioReceiveHandler;
 

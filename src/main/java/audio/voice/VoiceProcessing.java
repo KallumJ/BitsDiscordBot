@@ -1,26 +1,36 @@
-package voice;
+package audio.voice;
 
-import events.VoiceRecieveHandler;
+import events.audio.AudioPlayerSendHandler;
+import events.audio.VoiceRecieveHandler;
 import main.Main;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.managers.AudioManager;
 
-import java.io.*;
-import java.net.URL;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 public class VoiceProcessing {
 
-    private static final String NO_VOICE_CHANNEL = "You are not currently connected to a voice channel";
+    private static final String NO_VOICE_CHANNEL = "I can not connect to a voice channel right now.";
+    private static final String HAIL_WORDS_FILE = "hailwords.txt";
     private static AudioManager audioManager;
     private static VoiceRecieveHandler voiceRecieveHandler;
     private static MessageReceivedEvent messageReceivedEvent;
 
-    private static final String HAIL_WORDS_FILE = "hailwords.txt";
+    private static SpeechSynthesiser speechSynthesiser;
+
     /**
      * Process the provided audio information
+     *
      * @param bytes The audio information as a byte array
      */
     public static void process(List<byte[]> bytes) {
@@ -52,10 +62,7 @@ public class VoiceProcessing {
             messageReceivedEvent.getChannel().sendMessage("Bob thinks you said: " + query).queue();
             Optional<String> response = Main.getBOT().getCommands().evaluateCommand(query, messageReceivedEvent);
 
-            if (response.isPresent()) {
-                SpeechSynthesiser speechSynthesiser = new SpeechSynthesiser();
-                speechSynthesiser.synthesiseSpeech(response.get());
-            }
+            response.ifPresent(string -> speechSynthesiser.synthesiseSpeech(string));
         }
 
         // Flag that processing has ended
@@ -64,6 +71,7 @@ public class VoiceProcessing {
 
     /**
      * Removes the hail word from the passed text
+     *
      * @param text The text to remove the hail word from
      * @return The text without the hail word
      */
@@ -73,6 +81,7 @@ public class VoiceProcessing {
 
     /**
      * Checks the passed text is hailing Bob
+     *
      * @param text The text to check
      * @return true, if bob is being hailed
      */
@@ -90,25 +99,26 @@ public class VoiceProcessing {
 
     /**
      * Retrieves the list of common words heard instead of "bob" from resources directory
+     *
      * @return The list of words, as a String ArrayList
      */
     private static ArrayList<String> getHailedWords() {
         ArrayList<String> hailWords = new ArrayList<>();
         try {
-             InputStream inputStream = Main.class.getClassLoader().getResourceAsStream(HAIL_WORDS_FILE);
+            InputStream inputStream = Main.class.getClassLoader().getResourceAsStream(HAIL_WORDS_FILE);
 
-             if (inputStream != null) {
-                 InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-                 BufferedReader reader = new BufferedReader(inputStreamReader);
+            if (inputStream != null) {
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                BufferedReader reader = new BufferedReader(inputStreamReader);
 
-                 String line;
-                 while ((line = reader.readLine()) != null) {
-                     hailWords.add(line);
-                 }
-             }
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    hailWords.add(line);
+                }
+            }
         } catch (IOException ex) {
-             throw new RuntimeException("Failed to read the hail words file", ex);
-         }
+            throw new RuntimeException("Failed to read the hail words file", ex);
+        }
 
         return hailWords;
     }
@@ -133,11 +143,14 @@ public class VoiceProcessing {
         messageReceivedEvent = event;
         VoiceChannel voiceChannel = Objects.requireNonNull(Objects.requireNonNull(event.getMember()).getVoiceState()).getChannel();
 
-        if (voiceChannel != null) {
+        if (voiceChannel != null && event.getGuild().getSelfMember().hasPermission(Permission.VOICE_CONNECT)) {
             audioManager = voiceChannel.getGuild().getAudioManager();
 
             voiceRecieveHandler = new VoiceRecieveHandler();
             audioManager.setReceivingHandler(voiceRecieveHandler);
+
+            speechSynthesiser = new SpeechSynthesiser();
+            audioManager.setSendingHandler(new AudioPlayerSendHandler(speechSynthesiser.getAudioPlayer()));
 
             audioManager.openAudioConnection(voiceChannel);
         } else {

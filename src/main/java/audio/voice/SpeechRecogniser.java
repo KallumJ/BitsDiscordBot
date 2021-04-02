@@ -1,4 +1,4 @@
-package voice;
+package audio.voice;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -6,12 +6,21 @@ import org.vosk.LibVosk;
 import org.vosk.LogLevel;
 import org.vosk.Model;
 import org.vosk.Recognizer;
+import util.SoundFileUtils;
 
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.*;
 
 public class SpeechRecogniser {
+
+    private final Recognizer recognizer;
+
+    public SpeechRecogniser() {
+        LibVosk.setLogLevel(LogLevel.WARNINGS);
+        Model model = new Model("small_lang_model");
+        this.recognizer = new Recognizer(model, 16000);
+    }
 
     /**
      * Transcribes audio information from byte array of audio information
@@ -47,21 +56,14 @@ public class SpeechRecogniser {
      */
     public String transcribeAudio(File file) {
 
-        LibVosk.setLogLevel(LogLevel.DEBUG);
-
         String result = null;
-        try (Model model = new Model("model")) {
+        try {
             InputStream inputStream = AudioSystem.getAudioInputStream(new BufferedInputStream(new FileInputStream(file)));
-            Recognizer recognizer = new Recognizer(model, 16000);
 
             int nbytes;
             byte[] b = new byte[4096];
             while ((nbytes = inputStream.read(b)) >= 0) {
-                if (recognizer.acceptWaveForm(b, nbytes)) {
-                    System.out.println(recognizer.getResult());
-                } else {
-                    System.out.println(recognizer.getPartialResult());
-                }
+                recognizer.acceptWaveForm(b, nbytes);
             }
 
             JSONObject jsonObject = new JSONObject(recognizer.getResult());
