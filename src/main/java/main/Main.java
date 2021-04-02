@@ -12,6 +12,7 @@ import java.util.Properties;
 public class Main {
 
     //TODO: add to aiml files
+    //TODO: help command
 
     private static final String PROPERTIES_FILE_NAME = "config.properties";
     private static final Properties PROPERTIES = new Properties();

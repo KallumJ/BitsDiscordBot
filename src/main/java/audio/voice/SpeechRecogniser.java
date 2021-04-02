@@ -16,6 +16,9 @@ public class SpeechRecogniser {
 
     private final Recognizer recognizer;
 
+    /**
+     * Constructs a SpeechRecongiser object with the appropriate language model
+     */
     public SpeechRecogniser() {
         LibVosk.setLogLevel(LogLevel.WARNINGS);
         Model model = new Model("small_lang_model");
@@ -29,7 +32,7 @@ public class SpeechRecogniser {
      * @return String, The transcription
      */
     public String transcribeAudioFromByteArray(byte[] bytes) {
-        // Use that byte data to create sound file
+        // Use byte data to create sound file
         File file = new File("sounds/input.wav");
         try {
             SoundFileUtils.createWavFile(file, bytes);
@@ -41,8 +44,8 @@ public class SpeechRecogniser {
         File convertedFile = new File("sounds/convertedInput.wav");
         try {
             SoundFileUtils.generateTranscriptionCompatibleFile(file, convertedFile);
-        } catch (UnsupportedAudioFileException | IOException e) {
-            e.printStackTrace();
+        } catch (UnsupportedAudioFileException | IOException ex) {
+            throw new RuntimeException("Failed to convert wav file.", ex);
         }
 
         return transcribeAudio(convertedFile);
@@ -56,21 +59,24 @@ public class SpeechRecogniser {
      */
     public String transcribeAudio(File file) {
 
-        String result = null;
+        String result;
         try {
+            // Open stream to the senders input
             InputStream inputStream = AudioSystem.getAudioInputStream(new BufferedInputStream(new FileInputStream(file)));
 
+            // Analyse the input
             int nbytes;
             byte[] b = new byte[4096];
             while ((nbytes = inputStream.read(b)) >= 0) {
                 recognizer.acceptWaveForm(b, nbytes);
             }
 
+            // Get the output
             JSONObject jsonObject = new JSONObject(recognizer.getResult());
             result = (String) jsonObject.get("text");
 
-        } catch (IOException | UnsupportedAudioFileException | JSONException e) {
-            e.printStackTrace();
+        } catch (IOException | UnsupportedAudioFileException | JSONException ex) {
+            throw new RuntimeException("Unable to transcribe audio", ex);
         }
 
         return result;

@@ -1,27 +1,29 @@
 package events.audio;
 
+import audio.voice.VoiceProcessor;
+import commands.Commands;
 import net.dv8tion.jda.api.audio.AudioReceiveHandler;
 import net.dv8tion.jda.api.audio.UserAudio;
 import org.jetbrains.annotations.NotNull;
-import audio.voice.VoiceProcessing;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * A class to handle the receiving of audio from the user
+ */
 public class VoiceRecieveHandler implements AudioReceiveHandler {
     private static final double VOLUME = 1.0;
-    // How often to check whether the user has stopped talking in ms
-    private final static int DETECTION_INTERVAL = 100;
-    private final static int MAXIMUM_TALK_TIME = 5000;
+    private final static int DETECTION_INTERVAL = 100;  // How often to check whether the user has stopped talking in ms
+    private final static int MAXIMUM_TALK_TIME = 5000; // In milliseconds
     private final List<byte[]> recievedBytes = new ArrayList<>();
+    private final VoiceProcessor voiceProcessor = Commands.getJoinVoiceCommand().getVoiceProcessor();
     private boolean receiving = false;
     private boolean processing = false;
-    // How long to wait to see if the user has stopped talking in ms
-    private int detectionBuffer = 1000;
+    private int detectionBuffer = 1000; // How long to wait to see if the user has stopped talking in ms
     private Thread timer;
-    // In milliseconds
-    private int howLongTalking;
+    private int howLongTalking; // In milliseconds
 
     /**
      * Returns the received bytes of the current utterance
@@ -32,10 +34,20 @@ public class VoiceRecieveHandler implements AudioReceiveHandler {
         return recievedBytes;
     }
 
+    /**
+     * Returns whether the bot is currently processing audio information
+     *
+     * @return true if processing, false otherwise
+     */
     public boolean isProcessing() {
         return processing;
     }
 
+    /**
+     * Sets whether the bot is processing or not.
+     *
+     * @param processing boolean, whether the bot is processing, true if it is, false otherwise
+     */
     public void setProcessing(boolean processing) {
         this.processing = processing;
     }
@@ -57,6 +69,7 @@ public class VoiceRecieveHandler implements AudioReceiveHandler {
      */
     @Override
     public void handleUserAudio(@NotNull UserAudio userAudio) {
+        // If we are currently processing information, ignore incoming information
         if (!processing) {
 
             // Reset the detection buffer
@@ -66,7 +79,7 @@ public class VoiceRecieveHandler implements AudioReceiveHandler {
             try {
                 recievedBytes.add(userAudio.getAudioData(VOLUME));
             } catch (OutOfMemoryError ex) {
-                VoiceProcessing.leave();
+                voiceProcessor.leave();
             }
 
             // Start talking detection
@@ -100,8 +113,8 @@ public class VoiceRecieveHandler implements AudioReceiveHandler {
                     if (howLongTalking == MAXIMUM_TALK_TIME) {
                         detectionBuffer = 0;
                     }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                } catch (InterruptedException ex) {
+                    throw new RuntimeException("The automatic talking detection was interrupted", ex);
                 }
             }
 
@@ -126,11 +139,17 @@ public class VoiceRecieveHandler implements AudioReceiveHandler {
 
         // Process the audio that has been saved
         processing = true;
-        VoiceProcessing.process(recievedBytes);
+        voiceProcessor.process(recievedBytes);
     }
 
+    /**
+     * Method to be called whenever processing of audio has ended.
+     */
     public void endProcessing() {
+        // Clear the buffer of information
         recievedBytes.clear();
+
+        // Indicate processing is over.
         processing = false;
     }
 }

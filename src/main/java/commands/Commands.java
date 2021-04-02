@@ -1,9 +1,9 @@
 package commands;
 
-import commands.bitsplus.WikiLookup;
-import commands.other.GamesRoleMessage;
 import commands.audio.voice.JoinVoice;
 import commands.audio.voice.LeaveVoice;
+import commands.bitsplus.WikiLookup;
+import commands.other.GamesRoleMessage;
 import main.Main;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +16,7 @@ import java.util.Optional;
  * A class to register any provided class's that implement the Command abstract class for the bot to use
  */
 public class Commands {
-    private static final Map<String, Command> commands = new HashMap<>();
+    private static final Map<String, Command> commandsMap = new HashMap<>();
 
     /**
      * Constructs a Commands object. Use addCommand() to add every Command that is available to the bot
@@ -34,7 +34,16 @@ public class Commands {
      * @param command The command to add
      */
     private static void addCommand(@NotNull Command command) {
-        commands.put(command.getPhrase(), command);
+        commandsMap.put(command.getPhrase(), command);
+    }
+
+    /**
+     * Return the current JoinVoice command
+     *
+     * @return the current JoinVoice command
+     */
+    public static JoinVoice getJoinVoiceCommand() {
+        return (JoinVoice) commandsMap.get("join");
     }
 
     /**
@@ -51,9 +60,9 @@ public class Commands {
         /* Check every word in the message for a match,
         and execute the relevant command if one is found */
         for (String word : words) {
-            if (commands.containsKey(word)) {
+            if (commandsMap.containsKey(word)) {
                 understood = true;
-                Command command = commands.get(word);
+                Command command = commandsMap.get(word);
                 command.execute(input, event);
                 break;
             }
