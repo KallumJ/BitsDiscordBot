@@ -11,19 +11,34 @@ import java.util.concurrent.TimeUnit;
 
 public class VoiceRecieveHandler implements AudioReceiveHandler {
     private static final double VOLUME = 1.0;
-    private List<byte[]> recievedBytes = new ArrayList<>();
-
+    private final List<byte[]> recievedBytes = new ArrayList<>();
     private boolean receiving = false;
+    private boolean processing = false;
+
+    // How long to wait to see if the user has stopped talking in ms
     private int detectionBuffer = 1000;
+
+    // How often to check whether the user has stopped talking in ms
     private final static int DETECTION_INTERVAL = 100;
     private Thread timer;
 
+    // In milliseconds
+    private int howLongTalking;
+    private final static int MAXIMUM_TALK_TIME = 5000;
     /**
      * Returns the received bytes of the current utterance
      * @return List of byte arrays
      */
     public List<byte[]> getRecievedBytes() {
         return recievedBytes;
+    }
+
+    public boolean isProcessing() {
+        return processing;
+    }
+
+    public void setProcessing(boolean processing) {
+        this.processing = processing;
     }
 
     /**
@@ -41,20 +56,23 @@ public class VoiceRecieveHandler implements AudioReceiveHandler {
      */
     @Override
     public void handleUserAudio(@NotNull UserAudio userAudio) {
-        // Reset the detection buffer
-        detectionBuffer = 1000;
+        if (!processing) {
 
-        // Add the audio information to the list
-        try {
-            recievedBytes.add(userAudio.getAudioData(VOLUME));
-        } catch (OutOfMemoryError ex) {
-            VoiceProcessing.leave();
-        }
+            // Reset the detection buffer
+            detectionBuffer = 1000;
 
-        // Start talking detection
-        if (!receiving) {
-            startTalkingDetection();
-            receiving = true;
+            // Add the audio information to the list
+            try {
+                recievedBytes.add(userAudio.getAudioData(VOLUME));
+            } catch (OutOfMemoryError ex) {
+                VoiceProcessing.leave();
+            }
+
+            // Start talking detection
+            if (!receiving) {
+                receiving = true;
+                startTalkingDetection();
+            }
         }
     }
 
@@ -67,16 +85,28 @@ public class VoiceRecieveHandler implements AudioReceiveHandler {
         timer = new Thread(() -> {
             while (detectionBuffer > 0) {
                 try {
+                    // Wait for the provided amount of time
                     TimeUnit.MILLISECONDS.sleep(DETECTION_INTERVAL);
 
+                    // Remove that amount of time from the buffer
                     detectionBuffer -= DETECTION_INTERVAL;
+
+                    // Add that amount of time to the total talk length
+                    howLongTalking += DETECTION_INTERVAL;
+
+
+                    // If the user has reached maximum talk allowance, exit the loop
+                    if (howLongTalking == MAXIMUM_TALK_TIME) {
+                        detectionBuffer = 0;
+                    }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
 
-            // Detection buffer has run out, the user has stopped talking
-            userStoppedTalking();
+            // Detection buffer has run out or user has exceeded talk time, process the audio buffer
+            howLongTalking = 0;
+            processAudioBuffer();
         });
 
         // Start the detection runnable
@@ -86,7 +116,7 @@ public class VoiceRecieveHandler implements AudioReceiveHandler {
     /**
      * Handles the behaviour once the user has stopped talking
      */
-    private void userStoppedTalking() {
+    private void processAudioBuffer() {
         // Clear the runnable
         timer = null;
 
@@ -94,6 +124,12 @@ public class VoiceRecieveHandler implements AudioReceiveHandler {
         receiving = false;
 
         // Process the audio that has been saved
+        processing = true;
         VoiceProcessing.process(recievedBytes);
+    }
+
+    public void endProcessing() {
+        recievedBytes.clear();
+        processing = false;
     }
 }

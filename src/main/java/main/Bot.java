@@ -3,7 +3,7 @@ package main;
 import commands.Commands;
 import events.MessageListener;
 import events.ReactionListener;
-import main.ChatBot.ChatBot;
+import main.chatbot.ChatBot;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import org.slf4j.Logger;

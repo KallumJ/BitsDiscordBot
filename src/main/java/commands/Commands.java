@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * A class to register any provided class's that implement the Command abstract class for the bot to use
@@ -42,7 +43,7 @@ public class Commands {
      * @param input The input from the user
      * @param event The relevant event
      */
-    public void evaluateCommand(String input, MessageReceivedEvent event) {
+    public Optional<String> evaluateCommand(String input, MessageReceivedEvent event) {
         boolean understood = false;
         String[] words = input.split(" ");
 
@@ -58,11 +59,11 @@ public class Commands {
         }
 
         // If no command is found, assume the user is chatting
+        Optional<String> optResponse = Optional.empty();
         if (!understood) {
-            String response = Main.getBOT().getChatBot().askBot(input);
-            event.getChannel().sendMessage(response).queue();
+             optResponse = Optional.ofNullable(Main.getBOT().getChatBot().askBot(input));
+             optResponse.ifPresent(response -> event.getChannel().sendMessage(response).queue());
         }
-
-
+        return optResponse;
     }
 }

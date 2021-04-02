@@ -1,4 +1,4 @@
-package main.ChatBot;
+package main.chatbot;
 
 import org.alicebot.ab.Bot;
 import org.alicebot.ab.Chat;
@@ -10,6 +10,7 @@ import java.io.File;
  */
 public class ChatBot {
     private static final String NO_UNDERSTAND_MSG = "Oops... I don't understand... I'm sorry! #BlameKall";
+    private static final String LEARNED_INFO_FILE = "bots/Bob/aimlif/learnf.aiml.csv";
     private final Chat chatSession;
 
     //TODO: handle <oob>s
@@ -18,9 +19,11 @@ public class ChatBot {
      * Constructs a ChatBot object, loading the found .aiml files from the /bots directory, and deleting it's previous learnings
      */
     public ChatBot() {
-        File learnedFile = new File("bots/Bob/aimlif/learnf.aiml.csv");
+        File learnedFile = new File(LEARNED_INFO_FILE);
         if (learnedFile.exists()) {
-            learnedFile.delete();
+            if (!learnedFile.delete()) {
+                throw new RuntimeException("Failed to delete the learned information file for the chat bot");
+            }
         }
 
         File resourcesDirectory = new File(".");
@@ -37,7 +40,13 @@ public class ChatBot {
      */
     public String askBot(String msg) {
         try {
-            return chatSession.multisentenceRespond(msg);
+            String response = chatSession.multisentenceRespond(msg);
+
+            if (!response.contains("<oob>")) {
+                return response;
+            } else {
+                return NO_UNDERSTAND_MSG;
+            }
         } catch (NoClassDefFoundError ex) {
             return NO_UNDERSTAND_MSG;
         }
