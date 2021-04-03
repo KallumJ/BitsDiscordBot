@@ -21,7 +21,7 @@ import java.util.Optional;
 
 public class VoiceProcessor {
 
-    private static final String NO_VOICE_CHANNEL = "I can not connect to a voice channel right now.";
+    private static final String NO_VOICE_CHANNEL = "I can't connect to a voice channel right now.";
     private static final String HAIL_WORDS_FILE = "hailwords.txt";
     private AudioManager audioManager;
     private VoiceRecieveHandler voiceRecieveHandler;
@@ -29,6 +29,7 @@ public class VoiceProcessor {
     private TextChannel textChannel;
     private MessageReceivedEvent callingEvent;
     private SpeechSynthesiser speechSynthesiser;
+    private static final ArrayList<String> HAIL_WORDS = getHailWords();
 
     /**
      * Method to call when Bob has been invoked. Sets up the requirements to listen to the conversation
@@ -109,7 +110,7 @@ public class VoiceProcessor {
      * @param text The text to remove the hail word from
      * @return The text without the hail word
      */
-    private String getQuery(String text) {
+    private static String getQuery(String text) {
         return text.split(" ", 2)[1];
     }
 
@@ -119,9 +120,9 @@ public class VoiceProcessor {
      * @param text The text to check
      * @return true, if bob is being hailed
      */
-    private boolean checkIfHailed(String text) {
+    private static boolean checkIfHailed(String text) {
         boolean hailed = false;
-        for (String hailWord : getHailWords()) {
+        for (String hailWord : HAIL_WORDS) {
             if (text.startsWith(hailWord)) {
                 hailed = true;
                 break;
@@ -135,7 +136,7 @@ public class VoiceProcessor {
      *
      * @return The list of words, as a String ArrayList
      */
-    private ArrayList<String> getHailWords() {
+    private static ArrayList<String> getHailWords() {
         ArrayList<String> hailWords = new ArrayList<>();
         try {
             // Open the hail words file
@@ -176,5 +177,4 @@ public class VoiceProcessor {
             textChannel.sendMessage(NO_VOICE_CHANNEL).queue();
         }
     }
-
 }

@@ -16,12 +16,16 @@ public class SpeechRecogniser {
 
     private final Recognizer recognizer;
 
+    private static final String LANGUAGE_MODEL = "small_lang_model";
+    private static final String INPUT_FILE = "sounds/input.wav";
+    private static final String CONVERTED_FILE = "sounds/convertedInput.wav";
+
     /**
      * Constructs a SpeechRecongiser object with the appropriate language model
      */
     public SpeechRecogniser() {
         LibVosk.setLogLevel(LogLevel.WARNINGS);
-        Model model = new Model("small_lang_model");
+        Model model = new Model(LANGUAGE_MODEL);
         this.recognizer = new Recognizer(model, 16000);
     }
 
@@ -33,7 +37,7 @@ public class SpeechRecogniser {
      */
     public String transcribeAudioFromByteArray(byte[] bytes) {
         // Use byte data to create sound file
-        File file = new File("sounds/input.wav");
+        File file = new File(INPUT_FILE);
         try {
             SoundFileUtils.createWavFile(file, bytes);
         } catch (IOException ex) {
@@ -41,7 +45,7 @@ public class SpeechRecogniser {
         }
 
         // Convert file to transcription compatible format
-        File convertedFile = new File("sounds/convertedInput.wav");
+        File convertedFile = new File(CONVERTED_FILE);
         try {
             SoundFileUtils.generateTranscriptionCompatibleFile(file, convertedFile);
         } catch (UnsupportedAudioFileException | IOException ex) {

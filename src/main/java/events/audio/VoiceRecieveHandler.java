@@ -8,6 +8,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -19,10 +21,10 @@ public class VoiceRecieveHandler implements AudioReceiveHandler {
     private final static int MAXIMUM_TALK_TIME = 5000; // In milliseconds
     private final List<byte[]> recievedBytes = new ArrayList<>();
     private final VoiceProcessor voiceProcessor = Commands.getJoinVoiceCommand().getVoiceProcessor();
+    private final ExecutorService executorService = Executors.newCachedThreadPool();
     private boolean receiving = false;
     private boolean processing = false;
     private int detectionBuffer = 1000; // How long to wait to see if the user has stopped talking in ms
-    private Thread timer;
     private int howLongTalking; // In milliseconds
 
     /**
@@ -96,7 +98,7 @@ public class VoiceRecieveHandler implements AudioReceiveHandler {
     private void startTalkingDetection() {
 
         // Start checking every 100ms whether the user has stopped talking
-        timer = new Thread(() -> {
+        this.executorService.submit(() -> {
             while (detectionBuffer > 0) {
                 try {
                     // Wait for the provided amount of time
@@ -114,25 +116,23 @@ public class VoiceRecieveHandler implements AudioReceiveHandler {
                         detectionBuffer = 0;
                     }
                 } catch (InterruptedException ex) {
-                    throw new RuntimeException("The automatic talking detection was interrupted", ex);
+                    break;
                 }
             }
 
             // Detection buffer has run out or user has exceeded talk time, process the audio buffer
-            howLongTalking = 0;
-            processAudioBuffer();
+            if (detectionBuffer == 0) {
+                howLongTalking = 0;
+                processAudioBuffer();
+            }
         });
 
-        // Start the detection runnable
-        timer.start();
     }
 
     /**
      * Handles the behaviour once the user has stopped talking
      */
     private void processAudioBuffer() {
-        // Clear the runnable
-        timer = null;
 
         // Change flag to no longer receiving audio
         receiving = false;
