@@ -4,6 +4,7 @@ import commands.audio.voice.JoinVoice;
 import commands.audio.voice.LeaveVoice;
 import commands.bitsplus.WikiLookup;
 import commands.other.GamesRoleMessage;
+import commands.schedule.*;
 import main.Main;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +27,12 @@ public class Commands {
         addCommand(new GamesRoleMessage());
         addCommand(new JoinVoice());
         addCommand(new LeaveVoice());
+        addCommand(new AgendaCommand());
+        addCommand(new ScheduleCommand());
+        addCommand(new RsvpCommand());
+        addCommand(new UnRsvpCommand());
+        addCommand(new AttendeesCommand());
+        addCommand(new UnscheduleCommand());
     }
 
     /**

@@ -1,15 +1,13 @@
 package commands.other;
 
 import commands.Command;
-import main.Main;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import util.PermissionsUtils;
 import util.json.GamesJSON;
 
 import java.awt.*;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -34,35 +32,28 @@ public class GamesRoleMessage extends Command {
      */
     @Override
     public void execute(String input, MessageReceivedEvent event) {
-        List<Role> executorRoles = Objects.requireNonNull(event.getMember()).getRoles();
+        if (PermissionsUtils.checkIsGuard(Objects.requireNonNull(event.getMember()))) {
 
-        for (Role role : executorRoles) {
-            if (role.getId().equals(Main.getProperties().getProperty("guardRoleId"))) {
+            this.gamesJSON = new GamesJSON(event.getGuild());
 
-                this.gamesJSON = new GamesJSON(event.getGuild());
+            // If user wants a new role set embed message
+            if (input.contains("new")) {
+                removeOldRoleSetEmbed(event);
 
-                // If user wants a new role set embed message
-                if (input.contains("new")) {
-                    removeOldRoleSetEmbed(event);
-
-                    event.getChannel().sendMessage(generateNewRoleSetEmbed(event).build()).queue(message -> {
-                        // Update the message id stored in games file
-                        String messageId = message.getId();
-                        gamesJSON.updateMessageID(messageId);
-                    });
-                } else {
-                    // Else, edit the one thats already there
-                    event.getChannel().retrieveMessageById(gamesJSON.findMessageID()).queue(message -> {
-                        message.editMessage(generateNewRoleSetEmbed(event).build()).queue();
-                    });
-                }
-
-                event.getMessage().delete().queue();
-
-                break;
+                event.getChannel().sendMessage(generateNewRoleSetEmbed(event).build()).queue(message -> {
+                    // Update the message id stored in games file
+                    String messageId = message.getId();
+                    gamesJSON.updateMessageID(messageId);
+                });
+            } else {
+                // Else, edit the one thats already there
+                event.getChannel().retrieveMessageById(gamesJSON.findMessageID()).queue(message -> {
+                    message.editMessage(generateNewRoleSetEmbed(event).build()).queue();
+                });
             }
-        }
 
+            event.getMessage().delete().queue();
+        }
     }
 
     /**

@@ -5,6 +5,9 @@ import commands.Command;
 import commands.Commands;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
+/**
+ * A class to allow bob to leave a voice channel
+ */
 public class LeaveVoice extends Command {
 
     /**

@@ -12,6 +12,9 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingDeque;
 
+/**
+ * A class to manage sound playback
+ */
 public class SoundManager {
 
     private static final AudioPlayerManager PLAYER_MANAGER = new DefaultAudioPlayerManager();
@@ -19,6 +22,9 @@ public class SoundManager {
     private final Queue<AudioTrack> trackQueue;
     private final SoundScheduler soundScheduler;
 
+    /**
+     * Constructs a SoundManager object
+     */
     public SoundManager() {
         // Create LavaPlayer audio manager
         AudioSourceManagers.registerRemoteSources(PLAYER_MANAGER);
@@ -31,6 +37,11 @@ public class SoundManager {
         AUDIO_PLAYER.addListener(soundScheduler);
     }
 
+    /**
+     * Load a sample of speech from the bot
+     *
+     * @param soundIdentifier the path of the sound to load (file/youtube id)
+     */
     public void loadSpeechSound(String soundIdentifier) {
         PLAYER_MANAGER.loadItem(soundIdentifier, new AudioLoadResultHandler() {
             @Override
@@ -61,6 +72,11 @@ public class SoundManager {
         });
     }
 
+    /**
+     * Load a sound, but queue it up first if there something playing
+     *
+     * @param soundIdentifier the path of the sound to load (file/youtube id)
+     */
     public void loadOrderedSound(String soundIdentifier) {
         PLAYER_MANAGER.loadItem(soundIdentifier, new AudioLoadResultHandler() {
             @Override
@@ -99,6 +115,11 @@ public class SoundManager {
         });
     }
 
+    /**
+     * Returns the audio player for the SoundManager
+     *
+     * @return AudioPlayer the audio player
+     */
     public AudioPlayer getAudioPlayer() {
         return AUDIO_PLAYER;
     }

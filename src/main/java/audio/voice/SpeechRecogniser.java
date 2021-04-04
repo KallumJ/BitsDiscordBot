@@ -12,13 +12,15 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.*;
 
+/**
+ * A class to recognise inputted speech
+ */
 public class SpeechRecogniser {
-
-    private final Recognizer recognizer;
 
     private static final String LANGUAGE_MODEL = "small_lang_model";
     private static final String INPUT_FILE = "sounds/input.wav";
     private static final String CONVERTED_FILE = "sounds/convertedInput.wav";
+    private final Recognizer recognizer;
 
     /**
      * Constructs a SpeechRecongiser object with the appropriate language model

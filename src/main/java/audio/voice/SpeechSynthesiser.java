@@ -13,7 +13,6 @@ public class SpeechSynthesiser {
     private static final String OUTPUT_FILE = "sounds/output.wav";
     private final SoundManager soundManager;
 
-
     /**
      * Constructs a SpeechSynthesiser object
      */
@@ -41,6 +40,9 @@ public class SpeechSynthesiser {
         }
     }
 
+    /**
+     * Plays the response to the user with the current SoundManager
+     */
     public void playResponseToUser() {
         this.soundManager.loadSpeechSound(OUTPUT_FILE);
     }

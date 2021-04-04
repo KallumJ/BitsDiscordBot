@@ -3,11 +3,11 @@ package audio.voice;
 import events.audio.AudioPlayerSendHandler;
 import events.audio.VoiceRecieveHandler;
 import main.Main;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.managers.AudioManager;
+import util.PermissionsUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,17 +19,74 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * A class to process incoming voices
+ */
 public class VoiceProcessor {
 
     private static final String NO_VOICE_CHANNEL = "I can't connect to a voice channel right now.";
     private static final String HAIL_WORDS_FILE = "hailwords.txt";
+    private static final ArrayList<String> HAIL_WORDS = getHailWords();
     private AudioManager audioManager;
     private VoiceRecieveHandler voiceRecieveHandler;
     private VoiceChannel voiceChannel;
     private TextChannel textChannel;
     private MessageReceivedEvent callingEvent;
     private SpeechSynthesiser speechSynthesiser;
-    private static final ArrayList<String> HAIL_WORDS = getHailWords();
+
+    /**
+     * Removes the hail word from the passed text
+     *
+     * @param text The text to remove the hail word from
+     * @return The text without the hail word
+     */
+    private static String getQuery(String text) {
+        return text.split(" ", 2)[1];
+    }
+
+    /**
+     * Checks the passed text is hailing Bob
+     *
+     * @param text The text to check
+     * @return true, if bob is being hailed
+     */
+    private static boolean checkIfHailed(String text) {
+        boolean hailed = false;
+        for (String hailWord : HAIL_WORDS) {
+            if (text.startsWith(hailWord)) {
+                hailed = true;
+                break;
+            }
+        }
+        return hailed;
+    }
+
+    /**
+     * Retrieves the list of common words heard instead of "bob" from resources directory
+     *
+     * @return The list of words, as a String ArrayList
+     */
+    private static ArrayList<String> getHailWords() {
+        ArrayList<String> hailWords = new ArrayList<>();
+        try {
+            // Open the hail words file
+            InputStream inputStream = Main.class.getClassLoader().getResourceAsStream(HAIL_WORDS_FILE);
+            if (inputStream != null) {
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                BufferedReader reader = new BufferedReader(inputStreamReader);
+
+                // Read every word in the hailed words file, and add to list
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    hailWords.add(line);
+                }
+            }
+        } catch (IOException ex) {
+            throw new RuntimeException("Failed to read the hail words file", ex);
+        }
+
+        return hailWords;
+    }
 
     /**
      * Method to call when Bob has been invoked. Sets up the requirements to listen to the conversation
@@ -105,60 +162,6 @@ public class VoiceProcessor {
     }
 
     /**
-     * Removes the hail word from the passed text
-     *
-     * @param text The text to remove the hail word from
-     * @return The text without the hail word
-     */
-    private static String getQuery(String text) {
-        return text.split(" ", 2)[1];
-    }
-
-    /**
-     * Checks the passed text is hailing Bob
-     *
-     * @param text The text to check
-     * @return true, if bob is being hailed
-     */
-    private static boolean checkIfHailed(String text) {
-        boolean hailed = false;
-        for (String hailWord : HAIL_WORDS) {
-            if (text.startsWith(hailWord)) {
-                hailed = true;
-                break;
-            }
-        }
-        return hailed;
-    }
-
-    /**
-     * Retrieves the list of common words heard instead of "bob" from resources directory
-     *
-     * @return The list of words, as a String ArrayList
-     */
-    private static ArrayList<String> getHailWords() {
-        ArrayList<String> hailWords = new ArrayList<>();
-        try {
-            // Open the hail words file
-            InputStream inputStream = Main.class.getClassLoader().getResourceAsStream(HAIL_WORDS_FILE);
-            if (inputStream != null) {
-                InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-                BufferedReader reader = new BufferedReader(inputStreamReader);
-
-                // Read every word in the hailed words file, and add to list
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    hailWords.add(line);
-                }
-            }
-        } catch (IOException ex) {
-            throw new RuntimeException("Failed to read the hail words file", ex);
-        }
-
-        return hailWords;
-    }
-
-    /**
      * Bot leaves the channel its currently in
      */
     public void leave() {
@@ -171,7 +174,7 @@ public class VoiceProcessor {
      * Bot joins the channel the member who sent the message is currently in
      */
     public void join() {
-        if (this.voiceChannel != null && callingEvent.getGuild().getSelfMember().hasPermission(Permission.VOICE_CONNECT)) {
+        if (this.voiceChannel != null && PermissionsUtils.checkBotCanJoinVoice(callingEvent.getGuild())) {
             this.audioManager.openAudioConnection(voiceChannel);
         } else {
             textChannel.sendMessage(NO_VOICE_CHANNEL).queue();

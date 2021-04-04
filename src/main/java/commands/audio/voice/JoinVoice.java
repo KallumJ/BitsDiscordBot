@@ -4,6 +4,9 @@ import audio.voice.VoiceProcessor;
 import commands.Command;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
+/**
+ * A class to allow bob to join a voice channel
+ */
 public class JoinVoice extends Command {
 
     private final VoiceProcessor voiceProcessor;
