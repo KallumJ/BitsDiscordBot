@@ -79,6 +79,7 @@ public class AgendaCommand extends Command {
         embedBuilder.setTitle("Current Agenda");
         embedBuilder.setDescription("These are all the upcoming events on the Bits server!\nDate: dd/mm/yyyy, Time: UK Time.");
         embedBuilder.setFooter("Have an idea for an event, or think an event is missing? Talk to @KallumJ!");
+        embedBuilder.setAuthor("Want to see the agenda, adjusted for your timezone? Click me!", "https://bits.team/events");
         embedBuilder.setColor(new Color(37, 171, 227));
 
         if (validEventPresent(agenda)) {

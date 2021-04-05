@@ -3,6 +3,7 @@ package schedule;
 import com.mysql.cj.jdbc.MysqlDataSource;
 import main.Main;
 import net.dv8tion.jda.api.entities.Member;
+import util.TextUtils;
 
 import java.sql.*;
 import java.util.LinkedList;
@@ -38,29 +39,15 @@ public class EventsDatabaseConnector {
     }
 
     /**
-     * Query the database with the provided query
-     *
-     * @param query The query
-     * @return ResultSet of what the database returned
-     */
-    private ResultSet queryDatabase(String query) {
-        try {
-            Statement statement = databaseConnection.createStatement();
-            return statement.executeQuery(query);
-        } catch (SQLException ex) {
-            throw new RuntimeException("Unable to perform query " + query + " on database", ex);
-        }
-    }
-
-    /**
      * Returns a list of all events on the database
      *
      * @return a List of Event objects
      */
     public List<Event> getAgenda() {
-        ResultSet eventsSqlSet = queryDatabase("SELECT * FROM event");
         LinkedList<Event> eventList = new LinkedList<>();
         try {
+            PreparedStatement preparedStatement = databaseConnection.prepareStatement("SELECT * FROM event");
+            ResultSet eventsSqlSet = preparedStatement.executeQuery();
             while (eventsSqlSet.next()) {
                 int id = eventsSqlSet.getInt("event_ID");
                 String name = eventsSqlSet.getString("event_Name");
@@ -84,13 +71,12 @@ public class EventsDatabaseConnector {
      */
     public boolean scheduleEvent(Event eventObj) {
         try {
-            String query = "INSERT INTO event (event_ID, event_Name, event_Date, event_Time) values (?, ?, ?, ?)";
+            String query = "INSERT INTO event (event_Name, event_Date, event_Time) values (?, ?, ?)";
 
             PreparedStatement preparedStatement = databaseConnection.prepareStatement(query);
-            preparedStatement.setInt(1, computeEventID());
-            preparedStatement.setString(2, eventObj.getName());
-            preparedStatement.setDate(3, eventObj.getDate());
-            preparedStatement.setTime(4, eventObj.getTime());
+            preparedStatement.setString(1, eventObj.getName());
+            preparedStatement.setDate(2, eventObj.getDate());
+            preparedStatement.setTime(3, eventObj.getTime());
 
             preparedStatement.execute();
 
@@ -101,69 +87,28 @@ public class EventsDatabaseConnector {
     }
 
     /**
-     * Computes an event id
-     *
-     * @return the computed id
-     */
-    private int computeEventID() {
-        return mostRecentIdInTable("event") + 1;
-    }
-
-    /**
-     * Computes an user id
-     *
-     * @return the computed id
-     */
-    private int computeUserID() {
-        return mostRecentIdInTable("user") + 1;
-    }
-
-    /**
-     * Computes an rsvp id
-     *
-     * @return the computed id
-     */
-    private int computeRSVPID() {
-        return mostRecentIdInTable("rsvp") + 1;
-    }
-
-    /**
-     * Gets the most recent id in the provided table
-     *
-     * @param table the table to check
-     * @return the most recent id in the table
-     */
-    private int mostRecentIdInTable(String table) {
-        ResultSet tableSqlSet = queryDatabase("SELECT * FROM " + table);
-        int id = 0;
-        try {
-            while (tableSqlSet.next()) {
-                // If the current id is greater than the previous biggest id, update the biggest id
-                if (tableSqlSet.getInt(table + "_ID") > id) {
-                    id = tableSqlSet.getInt(table + "_ID");
-                }
-            }
-        } catch (SQLException ex) {
-            throw new RuntimeException("Unable to query records from " + table, ex);
-        }
-        return id;
-    }
-
-    /**
      * Return the corresponding Event object for the provided string
      *
      * @param eventStr the name of the event to return
      * @return an Event object
      */
     public Event getEventFromName(String eventStr) {
-        List<Event> events = getAgenda();
+        try {
+            PreparedStatement preparedStatement = databaseConnection.prepareStatement("SELECT * FROM event WHERE event_Name=?");
+            preparedStatement.setString(1, TextUtils.capitaliseEachWord(eventStr));
+            ResultSet relevantSqlSet = preparedStatement.executeQuery();
 
-        for (Event event : events) {
-            if (event.getName().equalsIgnoreCase(eventStr)) {
-                return event;
+            if (relevantSqlSet.next()) {
+                return new Event(relevantSqlSet.getInt("event_ID"),
+                        relevantSqlSet.getString("event_Name"),
+                        relevantSqlSet.getDate("event_Date"),
+                        relevantSqlSet.getTime("event_Time"));
+            } else {
+                return null;
             }
+        } catch (SQLException ex) {
+            return null;
         }
-        return null;
     }
 
     /**
@@ -182,12 +127,11 @@ public class EventsDatabaseConnector {
 
             if (!isUserRsvped(userId, eventId)) {
 
-                String query = "INSERT INTO rsvp (rsvp_ID, event_id, user_id) values (?, ?, ?)";
+                String query = "INSERT INTO rsvp (event_id, user_id) values (?, ?)";
 
                 PreparedStatement preparedStatement = databaseConnection.prepareStatement(query);
-                preparedStatement.setInt(1, computeRSVPID());
-                preparedStatement.setInt(2, eventId);
-                preparedStatement.setInt(3, userId);
+                preparedStatement.setInt(1, eventId);
+                preparedStatement.setInt(2, userId);
 
                 preparedStatement.execute();
 
@@ -207,53 +151,29 @@ public class EventsDatabaseConnector {
      * @return true if the user is rsvped, false otherwise
      */
     private boolean isUserRsvped(int userId, int eventId) {
-        List<Rsvp> allRSVPs = getAllRsvps();
-
-        for (Rsvp rsvp : allRSVPs) {
-            if (rsvp.getEventId() == eventId && rsvp.getUserId() == userId) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Returns all the rsvps in the table
-     *
-     * @return List of RSVP objects
-     */
-    private List<Rsvp> getAllRsvps() {
-        ResultSet rsvpSqlSet = queryDatabase("SELECT * FROM rsvp");
-        LinkedList<Rsvp> rsvpList = new LinkedList<>();
-        try {
-            while (rsvpSqlSet.next()) {
-                int rsvpId = rsvpSqlSet.getInt("rsvp_ID");
-                int userId = rsvpSqlSet.getInt("user_id");
-                int eventId = rsvpSqlSet.getInt("event_id");
-
-                rsvpList.add(new Rsvp(rsvpId, userId, eventId));
-            }
-        } catch (SQLException ex) {
-            throw new RuntimeException("Unable to generate list of events from database.", ex);
-        }
-        return rsvpList;
+        return getRsvp(userId, eventId) != null;
     }
 
     /**
      * Returns the user id for the provided Discord Member
      *
      * @param member the member
-     * @return the user id, -1 indicates an error.
+     * @return the user id
      */
     private int getUserIdFromMember(Member member) {
-        List<User> allUsers = getAllUsers();
+        try {
+            PreparedStatement preparedStatement = databaseConnection.prepareStatement("SELECT * FROM user where username=?");
+            preparedStatement.setString(1, member.getUser().getName());
+            ResultSet relevantSqlSet = preparedStatement.executeQuery();
 
-        for (User user : allUsers) {
-            if (user.getUsername().equals(member.getUser().getName())) {
-                return user.getId();
+            if (relevantSqlSet.next()) {
+                return relevantSqlSet.getInt("user_ID");
+            } else {
+                throw new RuntimeException("Failed to get the user id from the member");
             }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to get the user id from the member", ex);
         }
-        return -1;
     }
 
     /**
@@ -265,11 +185,10 @@ public class EventsDatabaseConnector {
 
         if (!isUserRegistered(member)) {
             try {
-                String query = "INSERT INTO user (user_ID, username) values (?, ?)";
+                String query = "INSERT INTO user (username) values (?)";
 
                 PreparedStatement preparedStatement = databaseConnection.prepareStatement(query);
-                preparedStatement.setInt(1, computeUserID());
-                preparedStatement.setString(2, member.getUser().getName());
+                preparedStatement.setString(1, member.getUser().getName());
 
                 preparedStatement.execute();
             } catch (SQLException ex) {
@@ -286,35 +205,15 @@ public class EventsDatabaseConnector {
      * @return true if the user is already registered, false otherwise
      */
     private boolean isUserRegistered(Member member) {
-        List<User> allUsers = getAllUsers();
-
-        for (User user : allUsers) {
-            if (user.getUsername().equals(member.getUser().getName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Returns a List of User objects for all the users in the table
-     *
-     * @return List of User objects
-     */
-    private List<User> getAllUsers() {
-        ResultSet userSqlSet = queryDatabase("SELECT * FROM user");
-        LinkedList<User> userList = new LinkedList<>();
         try {
-            while (userSqlSet.next()) {
-                int userId = userSqlSet.getInt("user_ID");
-                String username = userSqlSet.getString("username");
+            PreparedStatement preparedStatement = databaseConnection.prepareStatement("SELECT * FROM user where username=?");
+            preparedStatement.setString(1, member.getUser().getName());
+            ResultSet relevantSqlSet = preparedStatement.executeQuery();
 
-                userList.add(new User(userId, username));
-            }
+            return relevantSqlSet.next();
         } catch (SQLException ex) {
-            throw new RuntimeException("Unable to generate list of events from database.", ex);
+            throw new RuntimeException("Failed to get the user id from the member", ex);
         }
-        return userList;
     }
 
     /**
@@ -325,14 +224,19 @@ public class EventsDatabaseConnector {
      * @return the found RSVP object, null if none is found
      */
     private Rsvp getRsvp(int userId, int eventId) {
-        List<Rsvp> allRsvps = getAllRsvps();
+        try {
+            PreparedStatement preparedStatement = databaseConnection.prepareStatement("SELECT * FROM rsvp WHERE user_id=? AND event_id=?");
+            preparedStatement.setInt(1, userId);
+            preparedStatement.setInt(2, eventId);
+            ResultSet relevantRsvpSqlSet = preparedStatement.executeQuery();
 
-        for (Rsvp rsvp : allRsvps) {
-            if (rsvp.getUserId() == userId && rsvp.getEventId() == eventId) {
-                return rsvp;
+            if (relevantRsvpSqlSet.next()) {
+                return new Rsvp(relevantRsvpSqlSet.getInt("rsvp_ID"), relevantRsvpSqlSet.getInt("user_id"), relevantRsvpSqlSet.getInt("event_id"));
             }
+            return null;
+        } catch (SQLException ex) {
+            return null;
         }
-        return null;
     }
 
     /**
@@ -347,9 +251,8 @@ public class EventsDatabaseConnector {
             int userId = getUserIdFromMember(member);
             int eventId = event.getId();
 
-            String query = "DELETE FROM rsvp WHERE rsvp_ID = " + Objects.requireNonNull(getRsvp(userId, eventId)).getId();
-
-            PreparedStatement preparedStatement = databaseConnection.prepareStatement(query);
+            PreparedStatement preparedStatement = databaseConnection.prepareStatement("DELETE FROM rsvp WHERE rsvp_ID=?");
+            preparedStatement.setInt(1, Objects.requireNonNull(getRsvp(userId, eventId)).getId());
             preparedStatement.execute();
 
             return true;
@@ -365,16 +268,21 @@ public class EventsDatabaseConnector {
      * @return List of User objects of attendees
      */
     public List<User> getAttendeesForEvent(Event eventObj) {
-        List<Rsvp> allRsvps = getAllRsvps();
-
         List<User> attendees = new LinkedList<>();
-        if (eventObj != null) {
 
-            for (Rsvp rsvp : allRsvps) {
-                if (rsvp.getEventId() == eventObj.getId()) {
-                    attendees.add(getUserFromId(rsvp.getUserId()));
+        if (eventObj != null) {
+            try {
+                PreparedStatement preparedStatement = databaseConnection.prepareStatement("SELECT * FROM rsvp WHERE event_id=?");
+                preparedStatement.setInt(1, eventObj.getId());
+                ResultSet relevantSqlSet = preparedStatement.executeQuery();
+
+                while (relevantSqlSet.next()) {
+                    attendees.add(getUserFromId(relevantSqlSet.getInt("user_id")));
                 }
+            } catch (SQLException ex) {
+                return attendees;
             }
+
         }
         return attendees;
     }
@@ -386,14 +294,18 @@ public class EventsDatabaseConnector {
      * @return the User object of the provided user
      */
     private User getUserFromId(int userId) {
-        List<User> allUsers = getAllUsers();
+        try {
+            PreparedStatement preparedStatement = databaseConnection.prepareStatement("SELECT * FROM user WHERE user_ID=?");
+            preparedStatement.setInt(1, userId);
+            ResultSet relevantSqlSet = preparedStatement.executeQuery();
 
-        for (User user : allUsers) {
-            if (user.getId() == userId) {
-                return user;
+            if (relevantSqlSet.next()) {
+                return new User(relevantSqlSet.getInt("user_ID"), relevantSqlSet.getString("username"));
             }
+            return null;
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to get user from the provided id", ex);
         }
-        return null;
     }
 
     /**
@@ -406,12 +318,14 @@ public class EventsDatabaseConnector {
         try {
             int eventId = event.getId();
 
-            String rsvpDeleteQuery = "DELETE FROM rsvp WHERE event_ID = " + eventId;
+            String rsvpDeleteQuery = "DELETE FROM rsvp WHERE event_ID=?";
             PreparedStatement rsvpDeleteStatement = databaseConnection.prepareStatement(rsvpDeleteQuery);
+            rsvpDeleteStatement.setInt(1, eventId);
             rsvpDeleteStatement.execute();
 
-            String eventDeleteQuery = "DELETE FROM event WHERE event_ID = " + eventId;
+            String eventDeleteQuery = "DELETE FROM event WHERE event_ID=?";
             PreparedStatement eventDeleteStatement = databaseConnection.prepareStatement(eventDeleteQuery);
+            eventDeleteStatement.setInt(1, eventId);
             eventDeleteStatement.execute();
 
             return true;

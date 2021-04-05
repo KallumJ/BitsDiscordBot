@@ -46,8 +46,8 @@ public class AttendeesCommand extends Command {
 
             for (User attendee : attendees) {
                 embedBuilder.addField(attendee.getUsername(), "", true);
-                event.getChannel().sendMessage(embedBuilder.build()).queue();
             }
+            event.getChannel().sendMessage(embedBuilder.build()).queue();
         } else {
             event.getChannel().sendMessage("There are no attendees for this event").queue();
         }
