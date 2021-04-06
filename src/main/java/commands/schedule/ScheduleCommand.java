@@ -8,6 +8,7 @@ import util.PermissionsUtils;
 import util.TextUtils;
 
 import java.sql.Date;
+import java.sql.SQLException;
 import java.sql.Time;
 import java.util.Objects;
 
@@ -37,30 +38,18 @@ public class ScheduleCommand extends Command {
         if (PermissionsUtils.checkIsGuard(Objects.requireNonNull(event.getMember()))) {
             // Get event information from message as an array
             String[] eventInfoArray = input.replace("schedule ", "").split(" ", 3);
-
-            // If there are the correct number of arguments
-            if (eventInfoArray.length == 3) {
+            try {
                 Event eventObj = new Event(TextUtils.capitaliseEachWord(eventInfoArray[2]), Date.valueOf(eventInfoArray[0]), Time.valueOf(eventInfoArray[1]));
-
                 EventsDatabaseConnector databaseConnector = new EventsDatabaseConnector();
                 if (databaseConnector.scheduleEvent(eventObj)) {
                     event.getChannel().sendMessage(String.format(SCHEDULE_SUCCESS_STRING,
                             eventObj.getName(), eventObj.getDate().toString(), eventObj.getTime().toString())).queue();
                 } else {
-                    sendScheduleFailMessage(event);
+                    throw new SQLException("Failed to schedule event");
                 }
-            } else {
-                sendScheduleFailMessage(event);
+            } catch (IllegalArgumentException | IndexOutOfBoundsException | SQLException ex) {
+                event.getChannel().sendMessage(SCHEDULE_FAILURE_STRING).queue();
             }
         }
-    }
-
-    /**
-     * Sends error message to user
-     *
-     * @param event the calling MessageReceivedEvent
-     */
-    private void sendScheduleFailMessage(MessageReceivedEvent event) {
-        event.getChannel().sendMessage(SCHEDULE_FAILURE_STRING).queue();
     }
 }

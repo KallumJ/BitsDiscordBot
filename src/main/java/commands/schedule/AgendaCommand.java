@@ -77,7 +77,7 @@ public class AgendaCommand extends Command {
     private EmbedBuilder generateAgendaEmbed(List<Event> agenda) {
         EmbedBuilder embedBuilder = new EmbedBuilder();
         embedBuilder.setTitle("Current Agenda");
-        embedBuilder.setDescription("These are all the upcoming events on the Bits server!\nDate: dd/mm/yyyy, Time: UK Time.");
+        embedBuilder.setDescription("These are all the upcoming events on the Bits server!\nDate: dd/mm/yyyy, Timezone: UTC.");
         embedBuilder.setFooter("Have an idea for an event, or think an event is missing? Talk to @KallumJ!");
         embedBuilder.setAuthor("Want to see the agenda, adjusted for your timezone? Click me!", "https://bits.team/events");
         embedBuilder.setColor(new Color(37, 171, 227));
