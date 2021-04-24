@@ -35,10 +35,9 @@ public class UnscheduleCommand extends Command {
 
             String eventString = input.replace("unschedule ", "");
 
-            EventsDatabaseConnector databaseConnector = new EventsDatabaseConnector();
-            Event eventObj = databaseConnector.getEventFromName(eventString);
+            Event eventObj = EventsDatabaseConnector.getEventFromName(eventString);
 
-            if (databaseConnector.unscheduleEvent(eventObj)) {
+            if (EventsDatabaseConnector.unscheduleEvent(eventObj)) {
                 event.getChannel().sendMessage(String.format(UNSCHEDULE_SUCCESS_STRING, eventObj.getName())).queue();
             } else {
                 event.getChannel().sendMessage(String.format(UNSCHEDULE_FAILURE_STRING, eventString)).queue();

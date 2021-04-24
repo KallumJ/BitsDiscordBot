@@ -24,6 +24,9 @@ public class MessageListener extends ListenerAdapter {
         // When message is intended for bob, check it
         if (message.startsWith("!bob")) {
             commands.evaluateCommand(message.replace("!bob ", ""), event);
+        } else if (message.contains("#blamekall")) {
+            event.getChannel().sendMessage("NO! BE NICE! GO TO NAUGHTY JAIL!").queue();
+            event.getChannel().sendMessage("https://tenor.com/view/bonk-gif-18805247").queue();
         }
 
     }

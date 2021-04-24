@@ -3,7 +3,8 @@ package commands;
 import commands.audio.voice.JoinVoice;
 import commands.audio.voice.LeaveVoice;
 import commands.bitsplus.WikiLookup;
-import commands.other.GamesRoleMessage;
+import commands.games.AddGame;
+import commands.games.GamesRoleMessage;
 import commands.schedule.*;
 import main.Main;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -33,6 +34,7 @@ public class Commands {
         addCommand(new UnRsvpCommand());
         addCommand(new AttendeesCommand());
         addCommand(new UnscheduleCommand());
+        addCommand(new AddGame());
     }
 
     /**

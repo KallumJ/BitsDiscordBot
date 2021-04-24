@@ -1,4 +1,4 @@
-package commands.other;
+package commands.games;
 
 import commands.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Objects;
 
 /**
- * A command to update the games role message currently on the server
+ * A command to update the commands.games role message currently on the server
  */
 public class GamesRoleMessage extends Command {
     private GamesJSON gamesJSON;
@@ -41,7 +41,7 @@ public class GamesRoleMessage extends Command {
                 removeOldRoleSetEmbed(event);
 
                 event.getChannel().sendMessage(generateNewRoleSetEmbed(event).build()).queue(message -> {
-                    // Update the message id stored in games file
+                    // Update the message id stored in commands.games file
                     String messageId = message.getId();
                     gamesJSON.updateMessageID(messageId);
                 });

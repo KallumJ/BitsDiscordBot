@@ -40,8 +40,8 @@ public class ScheduleCommand extends Command {
             String[] eventInfoArray = input.replace("schedule ", "").split(" ", 3);
             try {
                 Event eventObj = new Event(TextUtils.capitaliseEachWord(eventInfoArray[2]), Date.valueOf(eventInfoArray[0]), Time.valueOf(eventInfoArray[1]));
-                EventsDatabaseConnector databaseConnector = new EventsDatabaseConnector();
-                if (databaseConnector.scheduleEvent(eventObj)) {
+
+                if (EventsDatabaseConnector.scheduleEvent(eventObj)) {
                     event.getChannel().sendMessage(String.format(SCHEDULE_SUCCESS_STRING,
                             eventObj.getName(), eventObj.getDate().toString(), eventObj.getTime().toString())).queue();
                 } else {

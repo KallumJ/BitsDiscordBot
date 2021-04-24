@@ -30,11 +30,9 @@ public class UnRsvpCommand extends Command {
     public void execute(String input, MessageReceivedEvent event) {
         String eventString = input.replace("unrsvp ", "");
 
-        EventsDatabaseConnector databaseConnector = new EventsDatabaseConnector();
+        Event eventObj = EventsDatabaseConnector.getEventFromName(eventString);
 
-        Event eventObj = databaseConnector.getEventFromName(eventString);
-
-        if (databaseConnector.unRsvpUser(event.getMember(), eventObj)) {
+        if (EventsDatabaseConnector.unRsvpUser(event.getMember(), eventObj)) {
             event.getChannel().sendMessage(String.format(UNRSVP_SUCCESS_STRING, eventObj.getName())).queue();
         } else {
             event.getChannel().sendMessage(String.format(UNRSVP_FAILURE_STRING, eventString)).queue();

@@ -1,9 +1,12 @@
 package main;
 
 import net.dv8tion.jda.api.JDA;
+import schedule.EventsDatabaseConnector;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -17,6 +20,7 @@ public class Main {
     private static final String PROPERTIES_FILE_NAME = "config.properties";
     private static final Properties PROPERTIES = new Properties();
     private static Bot BOT;
+    private static List<String> arguments;
 
     /**
      * The main method to start running the bot
@@ -24,10 +28,15 @@ public class Main {
      * @param args Given command line arguments, unused.
      */
     public static void main(String[] args) {
-
         initProperties();
+        arguments = Arrays.asList(args);
         BOT = new Bot();
         JDA jda = BOT.initBot();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            jda.shutdown();
+            EventsDatabaseConnector.closeConnection();
+        }));
     }
 
     /**
@@ -59,4 +68,8 @@ public class Main {
         return PROPERTIES;
     }
 
+
+    public static List<String> getArguments() {
+        return arguments;
+    }
 }

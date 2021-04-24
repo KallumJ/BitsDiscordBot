@@ -102,7 +102,6 @@ public class VoiceProcessor {
 
         this.audioManager = this.voiceChannel.getGuild().getAudioManager();
 
-
         // Set event handlers for receiving and sending audio information
         this.voiceRecieveHandler = new VoiceRecieveHandler();
         this.audioManager.setReceivingHandler(voiceRecieveHandler);

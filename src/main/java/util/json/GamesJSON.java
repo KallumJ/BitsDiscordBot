@@ -7,6 +7,8 @@ import net.dv8tion.jda.api.events.message.react.GenericMessageReactionEvent;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import util.RoleUtils;
+import util.TextUtils;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -14,15 +16,15 @@ import java.io.IOException;
 import java.util.HashMap;
 
 /**
- * A class to model the games json file used by the bot
+ * A class to model the commands.games json file used by the bot
  */
 public class GamesJSON {
-    private static final String GAMES_FILE_PATH = "./games.json";
+    private static final String GAMES_FILE_PATH = "games.json";
     private final JSONObject gamesJson;
     private final Guild guild;
 
     /**
-     * A constructor for the GamesJSON class, that reads the games json file and loads it into a JSONObject
+     * A constructor for the GamesJSON class, that reads the commands.games json file and loads it into a JSONObject
      *
      * @param guild The server to set roles within
      */
@@ -38,7 +40,7 @@ public class GamesJSON {
     }
 
     /**
-     * A method to create a JSON String from the games file
+     * A method to create a JSON String from the commands.games file
      *
      * @return String, The String of JSON data from file
      */
@@ -75,20 +77,22 @@ public class GamesJSON {
      * @param member Member, the member to add the role too
      * @param emote  String, the name of the emote
      */
-    public void addRole(Member member, String emote) {
+    public void assignRoleToMember(Member member, String emote) {
         Role role = findRoleFromName(emote);
-        this.guild.addRoleToMember(member, role).queue();
+
+        RoleUtils.addRoleToMember(role, member, guild);
     }
 
     /**
      * A method to remove the role associated with the provided emote from the provided member
      *
-     * @param memberId String, the user id of the member
-     * @param emote    String, the name of the emote
+     * @param member Member, the member
+     * @param emote  String, the name of the emote
      */
-    public void removeRole(String memberId, String emote) {
+    public void unassignRoleFromMember(Member member, String emote) {
         Role role = findRoleFromName(emote);
-        this.guild.removeRoleFromMember(memberId, role).queue();
+
+        RoleUtils.removeRoleFromMember(role, member, guild);
     }
 
     /**
@@ -117,7 +121,7 @@ public class GamesJSON {
     }
 
     /**
-     * A method to return a Map with a name key and emote value of all the games in the games json file
+     * A method to return a Map with a name key and emote value of all the commands.games in the commands.games json file
      *
      * @return HashMap The generated HashMap
      */
@@ -150,7 +154,7 @@ public class GamesJSON {
     }
 
     /**
-     * A method to update the current message id stored in the games json file
+     * A method to update the current message id stored in the commands.games json file
      *
      * @param messageId String, the message id to update to
      */
@@ -158,16 +162,23 @@ public class GamesJSON {
         try {
             this.gamesJson.put("messageId", messageId);
 
+            updateGamesFile();
+        } catch (JSONException ex) {
+            throw new RuntimeException("Unable to read message id from gamesJson");
+        }
+    }
 
+    private void updateGamesFile() {
+        try {
             // Rewrite JSON object to file
             FileWriter fileWriter = new FileWriter(GAMES_FILE_PATH);
             fileWriter.write(this.gamesJson.toString());
             fileWriter.flush();
             fileWriter.close();
-
-        } catch (JSONException | IOException ex) {
-            throw new RuntimeException("Unable to read message id from gamesJson");
+        } catch (IOException ex) {
+            throw new RuntimeException("Unable to update the games.json file");
         }
+
     }
 
     /**
@@ -200,14 +211,14 @@ public class GamesJSON {
                 }
             }
         } catch (JSONException ex) {
-            throw new RuntimeException("Failed to find element in games json file");
+            throw new RuntimeException("Failed to find element in commands.games json file");
         }
 
         return false;
     }
 
     /**
-     * A method to return the games array in the games json file
+     * A method to return the commands.games array in the commands.games json file
      *
      * @return JSONArray, the found JSONArray
      */
@@ -215,7 +226,29 @@ public class GamesJSON {
         try {
             return gamesJson.getJSONArray("games");
         } catch (JSONException ex) {
-            throw new RuntimeException("Failed to load the games array from games.json");
+            throw new RuntimeException("Failed to load the commands.games array from commands.games.json");
         }
     }
+
+    public void addGame(String game, String reaction) {
+        Role role = RoleUtils.createRole(game, guild);
+
+        try {
+            JSONObject gameObj = new JSONObject();
+            gameObj.put("name", TextUtils.capitaliseEachWord(game));
+            gameObj.put("roleID", role.getId());
+            gameObj.put("reaction", reaction);
+
+            JSONArray gamesArray = getGamesJsonArray();
+            gamesArray.put(gameObj);
+
+            this.gamesJson.remove("games");
+            this.gamesJson.put("games", gamesArray);
+            updateGamesFile();
+        } catch (JSONException ex) {
+            throw new RuntimeException("Unable to add game", ex);
+        }
+
+    }
+
 }

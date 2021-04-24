@@ -15,24 +15,29 @@ import java.util.Objects;
  */
 public class EventsDatabaseConnector {
 
-    private static final String URL = Main.getProperties().getProperty("sqlEventsHostname");
-    private static final String USERNAME = Main.getProperties().getProperty("sqlUsername");
-    private static final String PASSWORD = Main.getProperties().getProperty("sqlPassword");
+    private static final Connection DATABASE_CONNECTION;
 
-    private final Connection databaseConnection;
-
-    /**
-     * Constructs an EventsDatabaseConnector
-     */
-    public EventsDatabaseConnector() {
+    static {
         try {
             // Creates connection to the database
             MysqlDataSource dataSource = new MysqlDataSource();
-            dataSource.setUser(USERNAME);
-            dataSource.setPassword(PASSWORD);
-            dataSource.setURL(URL);
 
-            this.databaseConnection = dataSource.getConnection();
+            String url = Main.getProperties().getProperty("sqlLocalEventsHostname");
+            String username = Main.getProperties().getProperty("sqlLocalUsername");
+            String password = Main.getProperties().getProperty("sqlLocalPassword");
+
+            // If bot is being loaded on hogwarts
+            if (Main.getArguments().contains("-h")) {
+                url = Main.getProperties().getProperty("sqlEventsHostname");
+                username = Main.getProperties().getProperty("sqlUsername");
+                password = Main.getProperties().getProperty("sqlPassword");
+            }
+
+            dataSource.setUser(username);
+            dataSource.setPassword(password);
+            dataSource.setURL(url);
+
+            DATABASE_CONNECTION = dataSource.getConnection();
         } catch (SQLException ex) {
             throw new RuntimeException("Unable to create connection to database.", ex);
         }
@@ -43,10 +48,11 @@ public class EventsDatabaseConnector {
      *
      * @return a List of Event objects
      */
-    public List<Event> getAgenda() {
+    public static List<Event> getAgenda() {
         LinkedList<Event> eventList = new LinkedList<>();
+
         try {
-            PreparedStatement preparedStatement = databaseConnection.prepareStatement("SELECT * FROM event");
+            PreparedStatement preparedStatement = DATABASE_CONNECTION.prepareStatement("SELECT * FROM event WHERE event_Date >= CURRENT_DATE()");
             ResultSet eventsSqlSet = preparedStatement.executeQuery();
             while (eventsSqlSet.next()) {
                 int id = eventsSqlSet.getInt("event_ID");
@@ -69,11 +75,11 @@ public class EventsDatabaseConnector {
      * @param eventObj the Event object to schedule
      * @return true if successfully scheduled event, false otherwise
      */
-    public boolean scheduleEvent(Event eventObj) {
+    public static boolean scheduleEvent(Event eventObj) {
         try {
             String query = "INSERT INTO event (event_Name, event_Date, event_Time) values (?, ?, ?)";
 
-            PreparedStatement preparedStatement = databaseConnection.prepareStatement(query);
+            PreparedStatement preparedStatement = DATABASE_CONNECTION.prepareStatement(query);
             preparedStatement.setString(1, eventObj.getName());
             preparedStatement.setDate(2, eventObj.getDate());
             preparedStatement.setTime(3, eventObj.getTime());
@@ -92,9 +98,9 @@ public class EventsDatabaseConnector {
      * @param eventStr the name of the event to return
      * @return an Event object
      */
-    public Event getEventFromName(String eventStr) {
+    public static Event getEventFromName(String eventStr) {
         try {
-            PreparedStatement preparedStatement = databaseConnection.prepareStatement("SELECT * FROM event WHERE event_Name=?");
+            PreparedStatement preparedStatement = DATABASE_CONNECTION.prepareStatement("SELECT * FROM event WHERE event_Name=?");
             preparedStatement.setString(1, TextUtils.capitaliseEachWord(eventStr));
             ResultSet relevantSqlSet = preparedStatement.executeQuery();
 
@@ -118,7 +124,7 @@ public class EventsDatabaseConnector {
      * @param event  the event
      * @return true if successfully rsvped, false otherwise
      */
-    public boolean rsvpUser(Member member, Event event) {
+    public static boolean rsvpUser(Member member, Event event) {
         registerUserIfNew(member);
 
         try {
@@ -129,7 +135,7 @@ public class EventsDatabaseConnector {
 
                 String query = "INSERT INTO rsvp (event_id, user_id) values (?, ?)";
 
-                PreparedStatement preparedStatement = databaseConnection.prepareStatement(query);
+                PreparedStatement preparedStatement = DATABASE_CONNECTION.prepareStatement(query);
                 preparedStatement.setInt(1, eventId);
                 preparedStatement.setInt(2, userId);
 
@@ -150,7 +156,7 @@ public class EventsDatabaseConnector {
      * @param eventId the event's id
      * @return true if the user is rsvped, false otherwise
      */
-    private boolean isUserRsvped(int userId, int eventId) {
+    private static boolean isUserRsvped(int userId, int eventId) {
         return getRsvp(userId, eventId) != null;
     }
 
@@ -160,9 +166,9 @@ public class EventsDatabaseConnector {
      * @param member the member
      * @return the user id
      */
-    private int getUserIdFromMember(Member member) {
+    private static int getUserIdFromMember(Member member) {
         try {
-            PreparedStatement preparedStatement = databaseConnection.prepareStatement("SELECT * FROM user where username=?");
+            PreparedStatement preparedStatement = DATABASE_CONNECTION.prepareStatement("SELECT * FROM user where username=?");
             preparedStatement.setString(1, member.getUser().getName());
             ResultSet relevantSqlSet = preparedStatement.executeQuery();
 
@@ -181,13 +187,13 @@ public class EventsDatabaseConnector {
      *
      * @param member the member to register
      */
-    private void registerUserIfNew(Member member) {
+    private static void registerUserIfNew(Member member) {
 
         if (!isUserRegistered(member)) {
             try {
                 String query = "INSERT INTO user (username) values (?)";
 
-                PreparedStatement preparedStatement = databaseConnection.prepareStatement(query);
+                PreparedStatement preparedStatement = DATABASE_CONNECTION.prepareStatement(query);
                 preparedStatement.setString(1, member.getUser().getName());
 
                 preparedStatement.execute();
@@ -204,9 +210,9 @@ public class EventsDatabaseConnector {
      * @param member The member
      * @return true if the user is already registered, false otherwise
      */
-    private boolean isUserRegistered(Member member) {
+    private static boolean isUserRegistered(Member member) {
         try {
-            PreparedStatement preparedStatement = databaseConnection.prepareStatement("SELECT * FROM user where username=?");
+            PreparedStatement preparedStatement = DATABASE_CONNECTION.prepareStatement("SELECT * FROM user where username=?");
             preparedStatement.setString(1, member.getUser().getName());
             ResultSet relevantSqlSet = preparedStatement.executeQuery();
 
@@ -223,9 +229,9 @@ public class EventsDatabaseConnector {
      * @param eventId the event id
      * @return the found RSVP object, null if none is found
      */
-    private Rsvp getRsvp(int userId, int eventId) {
+    private static Rsvp getRsvp(int userId, int eventId) {
         try {
-            PreparedStatement preparedStatement = databaseConnection.prepareStatement("SELECT * FROM rsvp WHERE user_id=? AND event_id=?");
+            PreparedStatement preparedStatement = DATABASE_CONNECTION.prepareStatement("SELECT * FROM rsvp WHERE user_id=? AND event_id=?");
             preparedStatement.setInt(1, userId);
             preparedStatement.setInt(2, eventId);
             ResultSet relevantRsvpSqlSet = preparedStatement.executeQuery();
@@ -246,12 +252,12 @@ public class EventsDatabaseConnector {
      * @param event  The event
      * @return true if successfully unrsvped the member, false otherwise
      */
-    public boolean unRsvpUser(Member member, Event event) {
+    public static boolean unRsvpUser(Member member, Event event) {
         try {
             int userId = getUserIdFromMember(member);
             int eventId = event.getId();
 
-            PreparedStatement preparedStatement = databaseConnection.prepareStatement("DELETE FROM rsvp WHERE rsvp_ID=?");
+            PreparedStatement preparedStatement = DATABASE_CONNECTION.prepareStatement("DELETE FROM rsvp WHERE rsvp_ID=?");
             preparedStatement.setInt(1, Objects.requireNonNull(getRsvp(userId, eventId)).getId());
             preparedStatement.execute();
 
@@ -267,12 +273,12 @@ public class EventsDatabaseConnector {
      * @param eventObj the event to gather attendees for
      * @return List of User objects of attendees
      */
-    public List<User> getAttendeesForEvent(Event eventObj) {
+    public static List<User> getAttendeesForEvent(Event eventObj) {
         List<User> attendees = new LinkedList<>();
 
         if (eventObj != null) {
             try {
-                PreparedStatement preparedStatement = databaseConnection.prepareStatement("SELECT * FROM rsvp WHERE event_id=?");
+                PreparedStatement preparedStatement = DATABASE_CONNECTION.prepareStatement("SELECT * FROM rsvp WHERE event_id=?");
                 preparedStatement.setInt(1, eventObj.getId());
                 ResultSet relevantSqlSet = preparedStatement.executeQuery();
 
@@ -293,9 +299,9 @@ public class EventsDatabaseConnector {
      * @param userId the user id
      * @return the User object of the provided user
      */
-    private User getUserFromId(int userId) {
+    private static User getUserFromId(int userId) {
         try {
-            PreparedStatement preparedStatement = databaseConnection.prepareStatement("SELECT * FROM user WHERE user_ID=?");
+            PreparedStatement preparedStatement = DATABASE_CONNECTION.prepareStatement("SELECT * FROM user WHERE user_ID=?");
             preparedStatement.setInt(1, userId);
             ResultSet relevantSqlSet = preparedStatement.executeQuery();
 
@@ -314,17 +320,17 @@ public class EventsDatabaseConnector {
      * @param event the event to delete
      * @return true if successfully deleted, false otherwise
      */
-    public boolean unscheduleEvent(Event event) {
+    public static boolean unscheduleEvent(Event event) {
         try {
             int eventId = event.getId();
 
             String rsvpDeleteQuery = "DELETE FROM rsvp WHERE event_ID=?";
-            PreparedStatement rsvpDeleteStatement = databaseConnection.prepareStatement(rsvpDeleteQuery);
+            PreparedStatement rsvpDeleteStatement = DATABASE_CONNECTION.prepareStatement(rsvpDeleteQuery);
             rsvpDeleteStatement.setInt(1, eventId);
             rsvpDeleteStatement.execute();
 
             String eventDeleteQuery = "DELETE FROM event WHERE event_ID=?";
-            PreparedStatement eventDeleteStatement = databaseConnection.prepareStatement(eventDeleteQuery);
+            PreparedStatement eventDeleteStatement = DATABASE_CONNECTION.prepareStatement(eventDeleteQuery);
             eventDeleteStatement.setInt(1, eventId);
             eventDeleteStatement.execute();
 
@@ -332,5 +338,14 @@ public class EventsDatabaseConnector {
         } catch (SQLException | NullPointerException ex) {
             return false;
         }
+    }
+
+    public static void closeConnection() {
+        try {
+            DATABASE_CONNECTION.close();
+        } catch (SQLException ex) {
+            throw new RuntimeException("A SQLException occured while closing the database connection", ex);
+        }
+
     }
 }

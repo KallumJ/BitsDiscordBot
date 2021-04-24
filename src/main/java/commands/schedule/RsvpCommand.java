@@ -30,11 +30,9 @@ public class RsvpCommand extends Command {
     public void execute(String input, MessageReceivedEvent event) {
         String eventString = input.replace("rsvp ", "");
 
-        EventsDatabaseConnector databaseConnector = new EventsDatabaseConnector();
+        Event eventObj = EventsDatabaseConnector.getEventFromName(eventString);
 
-        Event eventObj = databaseConnector.getEventFromName(eventString);
-
-        if (databaseConnector.rsvpUser(event.getMember(), eventObj)) {
+        if (EventsDatabaseConnector.rsvpUser(event.getMember(), eventObj)) {
             event.getChannel().sendMessage(String.format(RSVP_SUCCESS_STRING, eventObj.getName())).queue();
         } else {
             event.getChannel().sendMessage(String.format(RSVP_FAILURE_STRING, eventString)).queue();

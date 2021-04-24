@@ -33,7 +33,7 @@ public class ReactionListener extends ListenerAdapter {
                 role = event.getReaction().getReactionEmote().getEmote().getName();
                 Member member = event.getMember();
 
-                gamesJSON.addRole(member, role);
+                gamesJSON.assignRoleToMember(member, role);
             } else {
                 event.getReaction().removeReaction(Objects.requireNonNull(event.getUser())).queue();
             }
@@ -58,9 +58,9 @@ public class ReactionListener extends ListenerAdapter {
             if (gamesJSON.checkEmoteHasRole(event)) {
                 role = event.getReaction().getReactionEmote().getEmote().getName();
 
-                String member = event.getUserId();
+                Member member = event.getMember();
 
-                gamesJSON.removeRole(member, role);
+                gamesJSON.unassignRoleFromMember(member, role);
             }
         }
 

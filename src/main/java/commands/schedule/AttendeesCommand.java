@@ -32,10 +32,8 @@ public class AttendeesCommand extends Command {
     public void execute(String input, MessageReceivedEvent event) {
         String eventString = input.replace("attendees ", "");
 
-        EventsDatabaseConnector databaseConnector = new EventsDatabaseConnector();
-
-        Event eventObj = databaseConnector.getEventFromName(eventString);
-        List<User> attendees = databaseConnector.getAttendeesForEvent(eventObj);
+        Event eventObj = EventsDatabaseConnector.getEventFromName(eventString);
+        List<User> attendees = EventsDatabaseConnector.getAttendeesForEvent(eventObj);
 
         if (!attendees.isEmpty()) {
             EmbedBuilder embedBuilder = new EmbedBuilder();
