@@ -8,23 +8,22 @@ import util.json.GamesJSON;
 
 import java.util.Objects;
 
-public class AddGame extends Command {
-    public AddGame() {
-        super("addgame");
+public class RemoveGame extends Command {
+
+    public RemoveGame() {
+        super("removegame");
     }
 
     @Override
     public void execute(String input, MessageReceivedEvent event) {
         if (PermissionsUtils.checkIsGuard(Objects.requireNonNull(event.getMember()))) {
-            String[] arguments = input.replace(super.getPhrase() + " ", "").split(" ", 2);
 
-            String game = arguments[1];
-            String reaction = arguments[0];
-
+            String game = TextUtils.capitaliseEachWord(input.replace( super.getPhrase() + " ", ""));
 
             GamesJSON gamesJSON = new GamesJSON(event.getGuild());
-            gamesJSON.addGame(game, reaction);
-            event.getChannel().sendMessage("Added game " + TextUtils.capitaliseEachWord(game) + " to games.json").queue();
+            gamesJSON.removeGame(game);
+
+            event.getChannel().sendMessage(game + " was removed from games.json").queue();
         }
     }
 }

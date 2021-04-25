@@ -5,6 +5,7 @@ import commands.audio.voice.LeaveVoice;
 import commands.bitsplus.WikiLookup;
 import commands.games.AddGame;
 import commands.games.GamesRoleMessage;
+import commands.games.RemoveGame;
 import commands.schedule.*;
 import main.Main;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -35,6 +36,7 @@ public class Commands {
         addCommand(new AttendeesCommand());
         addCommand(new UnscheduleCommand());
         addCommand(new AddGame());
+        addCommand(new RemoveGame());
     }
 
     /**

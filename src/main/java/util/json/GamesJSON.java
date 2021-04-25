@@ -1,8 +1,6 @@
 package util.json;
 
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.react.GenericMessageReactionEvent;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -14,6 +12,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * A class to model the commands.games json file used by the bot
@@ -249,6 +248,39 @@ public class GamesJSON {
             throw new RuntimeException("Unable to add game", ex);
         }
 
+    }
+
+    public void removeGame(String game) {
+       JSONArray gamesArray = getGamesJsonArray();
+       JSONArray updatedGamesArray = new JSONArray();
+
+       try {
+           for (int i = 0; i < gamesArray.length(); i++) {
+               JSONObject gameObj = gamesArray.getJSONObject(i);
+
+               // ADd all games that are not the specified game to new array
+               if (gameObj.getString("name").equals(game)) {
+                   removeReactionFromMessage(gameObj.getString("reaction"));
+               } else {
+                   updatedGamesArray.put(gameObj);
+               }
+           }
+
+           this.gamesJson.remove("games");
+           this.gamesJson.put("games", updatedGamesArray);
+           updateGamesFile();
+       } catch (JSONException ex) {
+           throw new RuntimeException("Failed remove the game from games.json");
+       }
+    }
+
+    public void removeReactionFromMessage(String reaction) {
+        for (Emote emote : guild.getEmotes()) {
+            if (emote.getName().equals(reaction)) {
+                TextChannel gameRolesChannel = guild.getTextChannelsByName("game-roles", false).get(0);
+                gameRolesChannel.clearReactionsById(findMessageID(), emote).queue();
+            }
+        }
     }
 
 }
